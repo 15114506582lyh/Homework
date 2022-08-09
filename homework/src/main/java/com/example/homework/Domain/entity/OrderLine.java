@@ -1,4 +1,4 @@
-package com.example.homework.Domain;
+package com.example.homework.Domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
