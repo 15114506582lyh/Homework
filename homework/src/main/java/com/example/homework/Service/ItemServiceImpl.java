@@ -54,11 +54,20 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
     }
 
     @Override
-    public String addItem(ItemAddReqVO item) {
+    public String addItem(ItemAddReqVO itemAddReqVO) {
         Item createItem = new Item();
-        BeanUtils.copyProperties(item, createItem);
+        BeanUtils.copyProperties(itemAddReqVO, createItem);
         save(createItem);
         return "商品添加成功";
+    }
 
+    @Override
+    public String updateItem(Item item) {
+        if(!(getById(item.getItemId())==null)) {
+            updateById(item);
+            return "修改商品成功";
+        }
+        else
+            return "修改商品失败";
     }
 }

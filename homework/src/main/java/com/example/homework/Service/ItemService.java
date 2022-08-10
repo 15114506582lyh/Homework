@@ -13,7 +13,7 @@ public interface ItemService extends IService<Item> {
     List<Item> SelectAll();
     ItemListResVO FindItem(ItemListReqVO itemFind);
     Item selectById(Integer id);
-    String addItem(ItemAddReqVO item);
-    Item
+    String addItem(ItemAddReqVO itemAddReqVO);
+    String updateItem(Item item);
 
 }

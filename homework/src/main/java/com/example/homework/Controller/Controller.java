@@ -31,7 +31,11 @@ public class Controller {
         return  itemService.selectById(itemId);
     }
     @PostMapping("/item/create")
-    public String addItem(@RequestBody @Validated ItemAddReqVO item){
-        return itemService.addItem(item);
+    public String addItem(@RequestBody @Validated ItemAddReqVO itemAddReqVO){
+        return itemService.addItem(itemAddReqVO);
+    }
+    @PostMapping("/item/update")
+    public String updateItem(@RequestBody Item item){
+        return itemService.updateItem(item);
     }
 }
