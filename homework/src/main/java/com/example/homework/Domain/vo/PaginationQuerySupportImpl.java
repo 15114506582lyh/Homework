@@ -11,7 +11,12 @@ import lombok.Data;
 @ApiModel
 @Data
 public class PaginationQuerySupportImpl implements PaginationQuerySupport {
-
+	/**
+	 * 第几页
+	 */
+	@ApiParam(value = "第几页", example = "1", required = true)
+	@Min(value = 1, message = "最小值1")
+	private int page;
 	/**
 	 * 每页记录数
 	 */
@@ -19,15 +24,7 @@ public class PaginationQuerySupportImpl implements PaginationQuerySupport {
 	@Min(value = 1, message = "最小值1")
 	@Max(value = 100, message = "最小值100")
 	private int pageSize;
-
-	/**
-	 * 第几页
-	 */
-	@ApiParam(value = "第几页", example = "1", required = true)
-	@Min(value = 1, message = "最小值1")
-	private int page;
-
-	@ApiParam(value = "排序字段")
+	/*@ApiParam(value = "排序字段")
 	@Pattern(regexp = "[a-zA-Z0-9_]+|", message = "无效的排序字段")
 	private String sortname;
 
@@ -37,6 +34,6 @@ public class PaginationQuerySupportImpl implements PaginationQuerySupport {
 
 	public String getOrderBy() {
 		return sortname == null ? "" : sortname + " " + sortorder;
-	}
+	}*/
 
 }

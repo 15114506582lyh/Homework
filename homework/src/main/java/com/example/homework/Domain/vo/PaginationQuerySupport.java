@@ -16,6 +16,6 @@ public interface PaginationQuerySupport {
 
 	public int getPage();
 
-	public String getOrderBy();
+//	public String getOrderBy();
 
 }
