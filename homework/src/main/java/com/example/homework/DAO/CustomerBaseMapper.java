@@ -5,5 +5,5 @@ import com.example.homework.Domain.entity.Customer;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CustomerMapper extends BaseMapper<Customer> {
+public interface CustomerBaseMapper extends BaseMapper<Customer> {
 }

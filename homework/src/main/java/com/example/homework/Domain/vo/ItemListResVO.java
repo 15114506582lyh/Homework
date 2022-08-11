@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 //response
 @Data
-public class ItemListResVO extends PaginationResultSupportImpl{
+public class ItemListResVO extends PaginationResultSupport {
 
     List<Item> rows;
 

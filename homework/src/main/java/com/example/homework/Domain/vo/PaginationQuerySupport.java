@@ -2,7 +2,6 @@ package com.example.homework.Domain.vo;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiParam;
@@ -10,7 +9,7 @@ import lombok.Data;
 
 @ApiModel
 @Data
-public class PaginationQuerySupportImpl implements PaginationQuerySupport {
+public class PaginationQuerySupport {
 	/**
 	 * 第几页
 	 */

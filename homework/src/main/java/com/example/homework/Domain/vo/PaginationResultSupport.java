@@ -6,7 +6,7 @@ import lombok.Data;
 
 @ApiModel
 @Data
-public class PaginationResultSupportImpl implements PaginationResultSupport {
+public class PaginationResultSupport {
 
 	/**
 	 * 总记录数
