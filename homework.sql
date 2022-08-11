@@ -30,6 +30,7 @@ status varchar(50) not null comment'商品状态'
 drop table if exists orderheader;
 create table OrderHeader(
 order_id int primary key not null auto_increment comment'订单头id',
+order_number varchar(50) not null comment'订单编号',
 customer_id int not null comment'客户id',
 order_date datetime not null comment'下单日期',
 status varchar(50) not null comment'订单状态',
@@ -93,3 +94,14 @@ insert into Item values
 (item_id,'蒙牛纯牛奶','箱',50,'有效'),
 (item_id,'特仑苏牛奶','箱',null,''),
 (item_id,'好丽友薯片','件',12389.7563,'有效');
+insert into orderheader values
+(1100001,'SO2022081111111',10000003,'2022-08-11 10:00:05','登记'),
+(order_id,'SO2022081111112',10000003,'2022-08-11 09:00:13','登记'),
+(order_id,'SO2022081111113',10000003,'2022-08-11 09:00:24','登记'),
+(order_id,'SO2022081111114',10000003,'2022-08-11 09:00:36','登记'),
+(order_id,'SO2022081111115',10000005,'2022-08-10 09:00:47','待发货'),
+(order_id,'SO2022081111116',10000005,'2022-08-10 09:02:01','待发货'),
+(order_id,'SO2022081111117',10000008,'2022-08-10 17:00:05','待发货'),
+(order_id,'SO2022081111118',10000001,'2022-08-10 11:05:05','发货中'),
+(order_id,'SO2022081111119',10000001,'2022-08-10 09:00:05','完成'),
+(order_id,'SO2022081111120',10000001,'2022-08-10 09:00:05','取消');
