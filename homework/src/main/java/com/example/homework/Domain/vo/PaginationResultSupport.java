@@ -1,18 +1,22 @@
 package com.example.homework.Domain.vo;
 
-public interface PaginationResultSupport {
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-    /**
-     * 总记录数
-     */
-    public void setTotal(long total);
+@ApiModel
+@Data
+public class PaginationResultSupportImpl implements PaginationResultSupport {
 
-    public long getTotal();
+	/**
+	 * 总记录数
+	 */
+	@ApiModelProperty(value = "总记录数",example="0")
+	private long total = 0;
 
-    /**
-     * 总页数
-     */
-    public void setTotalPages(int totalPages);
-
-    public int getTotalPages();
+	/**
+	 * 总页数
+	 */
+	@ApiModelProperty(value = "总页数",example="0")
+	private int totalPages = 0;
 }
