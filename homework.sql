@@ -2,14 +2,13 @@ create database homework;
 use homework;
 set @@foreign_key_checks=OFF;
 set sql_safe_updates=0;
-drop table if exists Customer;
 create table Customer(
 customer_id int primary key not null auto_increment comment'客户id',
 customer_number varchar(50) not null comment'客户编码',
 customer_name varchar(50) not null comment'客户名称',
 customer_type varchar(30) default'暂无' comment'客户类型',
 email varchar(300) default'暂无' comment'邮箱',
-status varchar(50) not null comment'客户状态'
+status varchar(50) not null default'有效' comment'客户状态'
 )comment'客户信息表';
 drop table if exists customerlocation;
 create table CustomerLocation(
@@ -92,7 +91,7 @@ insert into Item values
 (item_id,'怡宝饮用水','箱',100000.9999,'有效'),
 (item_id,'崂山汽水','瓶',null,'已下架'),
 (item_id,'蒙牛纯牛奶','箱',50,'有效'),
-(item_id,'特仑苏牛奶','箱',null,''),
+(item_id,'特仑苏牛奶','箱',null,'有效'),
 (item_id,'好丽友薯片','件',12389.7563,'有效');
 insert into orderheader values
 (1100001,'SO2022081111111',10000003,'2022-08-11 10:00:05','登记'),
@@ -105,3 +104,4 @@ insert into orderheader values
 (order_id,'SO2022081111118',10000001,'2022-08-10 11:05:05','发货中'),
 (order_id,'SO2022081111119',10000001,'2022-08-10 09:00:05','完成'),
 (order_id,'SO2022081111120',10000001,'2022-08-10 09:00:05','取消');
+insert into orderline values

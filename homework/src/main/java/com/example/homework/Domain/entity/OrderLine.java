@@ -1,5 +1,6 @@
 package com.example.homework.Domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -10,7 +11,7 @@ import java.math.BigDecimal;
 @Data
 @TableName("orederline")
 public class OrderLine {
-    @TableId("line_id")
+    @TableId(value = "line_id",type= IdType.AUTO)
     private Integer lineId;
     @TableField("order_id")
     private Integer orderId;

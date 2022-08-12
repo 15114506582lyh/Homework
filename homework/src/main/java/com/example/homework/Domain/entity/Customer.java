@@ -1,5 +1,6 @@
 package com.example.homework.Domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -7,7 +8,7 @@ import lombok.Data;
 @Data
 @TableName("customer")
 public class Customer {
-    @TableId("customer_id")
+    @TableId(value = "customer_id",type= IdType.AUTO)
     private Integer customerId;
     @TableField("customer_number")
     private String customerNumber;

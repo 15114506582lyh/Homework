@@ -5,5 +5,5 @@ import com.example.homework.Domain.entity.CustomerLocation;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CustomerInfoMapper extends BaseMapper<CustomerLocation> {
+public interface CustomerLocationMapper extends BaseMapper<CustomerLocation> {
 }

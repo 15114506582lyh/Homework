@@ -1,13 +1,11 @@
-package com.example.homework.Service;
+package com.example.homework.Domain.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.homework.DAO.ItemMapper;
 import com.example.homework.Domain.entity.Item;
-import com.example.homework.Domain.vo.ItemAddReqVO;
-import com.example.homework.Domain.vo.ItemDisableReqVO;
-import com.example.homework.Domain.vo.ItemListReqVO;
-import com.example.homework.Domain.vo.ItemListResVO;
+import com.example.homework.Domain.service.ItemService;
+import com.example.homework.Domain.vo.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.util.StringUtil;
@@ -25,6 +23,7 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
     private ItemMapper itemMapper;
 
     @Override
+//    商品信息列表查询，支持分页查询
     public ItemListResVO list(ItemListReqVO itemFind) {
         LambdaQueryWrapper<Item> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtil.isNotEmpty(itemFind.getItemName()), Item::getItemName, itemFind.getItemName());
@@ -45,35 +44,47 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
     }
 
     @Override
+//    查询单个商品信息
     public Item selectById(Integer id) {
         return getById(id);
     }
 
     @Override
-    public String add(ItemAddReqVO itemAddReqVO) {
+//    新建单个商品信息
+    public ItemAddStringVO add(ItemAddReqVO itemAddReqVO) {
         Item createItem = new Item();
         BeanUtils.copyProperties(itemAddReqVO, createItem);
         save(createItem);
-        return "商品添加成功";
+        ItemAddStringVO itemAddStringVO =new ItemAddStringVO();
+        itemAddStringVO.setInfo("商品添加成功");
+        return itemAddStringVO;
     }
 
     @Override
-    public String update(Item item) {
+    public ItemUpdateStringVO update(Item item) {
+//        更新单个商品信息
+        ItemUpdateStringVO itemUpdateStringVO = new ItemUpdateStringVO();
         if (!(getById(item.getItemId()) == null)) {
             updateById(item);
-            return "修改商品成功";
-        } else
-            return "找不到此商品，修改商品失败";
+            itemUpdateStringVO.setInfo("修改商品成功");
+        } else {
+            itemUpdateStringVO.setInfo("找不到此商品，修改商品失败");
+        }
+        return itemUpdateStringVO;
     }
 
     @Override
-    public String disable(ItemDisableReqVO itemDisableReqVO) {
+//    下架商品
+    public ItemDisableStringVO disable(ItemDisableReqVO itemDisableReqVO) {
+        ItemDisableStringVO itemDisableStringVO = new ItemDisableStringVO();
         if (getById(itemDisableReqVO.getItemId()).getStatus().equals("有效")) {
             Item item = new Item();
             BeanUtils.copyProperties(itemDisableReqVO, item);
             updateById(item);
-            return "商品下架成功";
-        } else
-            return "该商品已经下架，下架失败";
+            itemDisableStringVO.setInfo("商品下架成功");
+        } else {
+            itemDisableStringVO.setInfo("该商品已经下架，下架失败");
+            }
+        return itemDisableStringVO;
     }
 }

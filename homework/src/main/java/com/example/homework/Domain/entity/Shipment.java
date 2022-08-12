@@ -1,5 +1,6 @@
 package com.example.homework.Domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -10,7 +11,7 @@ import java.sql.Date;
 @Data
 @TableName("shipment")
 public class Shipment {
-    @TableId("shipment_id")
+    @TableId(value = "shipment_id",type= IdType.AUTO)
     private Integer shipmentId;
     @TableField("line_id")
     private Integer lineId;
