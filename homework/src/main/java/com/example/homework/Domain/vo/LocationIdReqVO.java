@@ -3,6 +3,6 @@ package com.example.homework.Domain.vo;
 import lombok.Data;
 
 @Data
-public class ItemUpdateStringVO {
-    private String info;
+public class LocationIdReqVO {
+    private Integer locationId;
 }
