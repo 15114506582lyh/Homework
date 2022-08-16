@@ -1,15 +1,13 @@
 package com.example.homework.Domain.vo;
 
+import com.example.homework.Domain.dto.OrderListDTO;
 import lombok.Data;
 
-import java.util.Date;
+import java.util.List;
 
 @Data
-public class OrderListResVO extends PriceSupport{
-    private Integer number;
-    private String customerName;
-    private String orderNumber;
-    private Date orderDate;
-    private String itemName;
-    private String status;
+public class OrderListResVO extends PaginationResultSupport{
+
+    List<OrderListDTO> rows;
+
 }

@@ -3,12 +3,16 @@ package com.example.homework.Service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
+import com.example.homework.DAO.OrderHeaderMapper;
+import com.example.homework.Domain.dto.OrderListDTO;
 import com.example.homework.Domain.entity.Customer;
 import com.example.homework.Domain.entity.CustomerLocation;
 import com.example.homework.Domain.entity.OrderHeader;
+import com.example.homework.Domain.entity.OrderLine;
 import com.example.homework.Domain.service.CustomerLocationService;
 import com.example.homework.Domain.service.CustomerService;
 import com.example.homework.Domain.service.OrderHeaderService;
+import com.example.homework.Domain.service.OrderLineService;
 import com.example.homework.Domain.vo.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -30,6 +34,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     private CustomerLocationService customerLocationService;
     @Autowired
     private OrderHeaderService orderHeaderService;
+    @Autowired
+    private OrderHeaderMapper orderHeaderMapper;
 
 
 
@@ -124,4 +130,16 @@ public class ApplicationServiceImpl implements ApplicationService {
         return infoVO;
     }
 
+    @Override
+    public OrderListResVO orderList(OrderListReqVO orderListReqVO) {
+        Page<OrderListDTO> page = PageHelper.startPage(orderListReqVO.getPage(),orderListReqVO.getPageSize());
+        List<OrderListDTO> list = orderHeaderMapper.orderList(orderListReqVO);
+        OrderListResVO responce = new OrderListResVO();
+        if(!CollectionUtils.isEmpty(list)){
+            responce.setTotal(page.getTotal());
+            responce.setTotalPages(page.getPages());
+            responce.setRows(list);
+        }
+        return responce;
+    }
 }

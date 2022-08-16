@@ -6,6 +6,7 @@ import com.example.homework.Domain.vo.*;
 import com.example.homework.Domain.service.ItemServiceImpl;
 import com.example.homework.Service.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -106,5 +107,13 @@ public class Controller {
     @PostMapping("/customer/location/selector")
     public List<LocationSelectorResVO> select(@RequestBody  CustomerIdReqVO customerIdReqVO){
         return customerLocationService.select(customerIdReqVO);
+    }
+
+
+
+//    订单信息列表查询，支持分页查询
+    @PostMapping("/order/list")
+    public OrderListResVO list(@RequestBody OrderListReqVO orderListReqVO){
+        return applicationService.orderList(orderListReqVO);
     }
 }

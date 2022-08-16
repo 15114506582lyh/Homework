@@ -35,10 +35,9 @@ order_id int primary key not null auto_increment comment'订单头id',
 order_number varchar(50) not null comment'订单编号',
 customer_id int not null comment'客户id',
 order_date datetime not null comment'下单日期',
-status varchar(50) not null comment'订单状态',
+status varchar(50) not null default '登记' comment'订单状态',
 foreign key(customer_id) references Customer(customer_id)
 )comment'订单头表';
-
 drop table if exists orderline;
 create table OrderLine(
 line_id int primary key not null auto_increment comment'订单行id',
@@ -145,3 +144,14 @@ insert into shipment values
 (shipment_id,500005,'苹果2','11116','2022-08-15 10:04:37',actual_shipment_date,500,status),
 (shipment_id,500006,'苹果2','11116','2022-08-15 10:04:46',actual_shipment_date,600,status),
 (shipment_id,500007,'苹果1','11115','2022-08-15 10:04:54',actual_shipment_date,100,status);
+
+
+select customer_name,order_number,order_date,group_concat(item_name) as item_name,sum(orderline.price*orderline.quality) as total_price,orderheader.status 
+from orderheader
+inner join orderline on orderheader.order_id=orderline.order_id
+inner join item on orderline.item_id=item.item_id
+inner join customer on orderheader.customer_id=customer.customer_id
+where customer.customer_name like '%苹%'
+and order_number like '%' 
+and order_date >= '2022-08-10 09:00:05' and order_date <= '2022-08-11 10:00:05'
+group by order_number;
