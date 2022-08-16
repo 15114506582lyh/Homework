@@ -44,7 +44,7 @@ line_id int primary key not null auto_increment comment'订单行id',
 order_id int not null comment'订单头id',
 item_id int not null comment'商品id',
 price decimal(10,4) not null comment'单价',
-quality decimal(10,4) not null comment'行数量',
+quantity decimal(10,4) not null comment'行数量',
 foreign key(order_id) references OrderHeader(order_id),
 foreign key(item_id) references Item(item_id)
 )comment'订单行表';
@@ -57,7 +57,7 @@ address varchar(200) not null comment'客户收货地址',
 phone varchar(20) not null comment'客户收货电话',
 estimated_shipment_date datetime not null comment'预计发货日期',
 actual_shipment_date datetime default null comment's实际发货日期',
-quality decimal(10,4) not null comment'发货行数量',
+quantity decimal(10,4) not null comment'发货行数量',
 status varchar(50) not null DEFAULT '待发货' comment'发货状态',
 foreign key(line_id) references OrderLine(line_id)
 )comment'订单发货行表';
@@ -146,7 +146,7 @@ insert into shipment values
 (shipment_id,500007,'苹果1','11115','2022-08-15 10:04:54',actual_shipment_date,100,status);
 
 
-select customer_name,order_number,order_date,group_concat(item_name) as item_name,sum(orderline.price*orderline.quality) as total_price,orderheader.status 
+select customer_name,order_number,order_date,group_concat(item_name) as item_name,sum(orderline.price*orderline.quantity) as total_price,orderheader.status 
 from orderheader
 inner join orderline on orderheader.order_id=orderline.order_id
 inner join item on orderline.item_id=item.item_id

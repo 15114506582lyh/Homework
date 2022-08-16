@@ -116,4 +116,12 @@ public class Controller {
     public OrderListResVO list(@RequestBody OrderListReqVO orderListReqVO){
         return applicationService.orderList(orderListReqVO);
     }
+
+
+
+//    查询单个订单信息，包含订单头、订单行
+    @GetMapping("/order/detail")
+    public OrderDetailResVO detail(OrderDetailReqVO orderDetailReqVO){
+        return applicationService.orderDetail(orderDetailReqVO);
+    }
 }

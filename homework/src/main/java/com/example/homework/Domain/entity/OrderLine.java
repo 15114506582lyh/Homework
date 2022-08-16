@@ -9,7 +9,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-@TableName("orederline")
+@TableName("orderline")
 public class OrderLine {
     @TableId(value = "line_id",type= IdType.AUTO)
     private Integer lineId;

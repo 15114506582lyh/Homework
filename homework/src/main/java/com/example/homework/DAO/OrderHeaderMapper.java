@@ -15,7 +15,7 @@ import java.util.List;
 public interface OrderHeaderMapper extends BaseMapper<OrderHeader> {
 
     @Select("<script>" +
-            "select customer_name,order_number,order_date,group_concat(item_name) as item_name,sum(orderline.price*orderline.quality) as total_price,orderheader.status from orderheader\n" +
+            "select customer_name,order_number,order_date,group_concat(item_name) as item_name,sum(orderline.price*orderline.quantity) as total_price,orderheader.status from orderheader\n" +
             "inner join orderline on orderheader.order_id=orderline.order_id\n" +
             "inner join item on orderline.item_id=item.item_id\n" +
             "inner join customer on orderheader.customer_id=customer.customer_id\n" +

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.example.homework.DAO.OrderHeaderMapper;
+import com.example.homework.Domain.dto.OrderDetailDTO;
 import com.example.homework.Domain.dto.OrderListDTO;
 import com.example.homework.Domain.entity.Customer;
 import com.example.homework.Domain.entity.CustomerLocation;
@@ -34,6 +35,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     private CustomerLocationService customerLocationService;
     @Autowired
     private OrderHeaderService orderHeaderService;
+    @Autowired
+    private OrderLineService orderLineService;
     @Autowired
     private OrderHeaderMapper orderHeaderMapper;
 
@@ -130,16 +133,48 @@ public class ApplicationServiceImpl implements ApplicationService {
         return infoVO;
     }
 
+
+
+//    订单信息列表查询，支持分页查询
     @Override
     public OrderListResVO orderList(OrderListReqVO orderListReqVO) {
         Page<OrderListDTO> page = PageHelper.startPage(orderListReqVO.getPage(),orderListReqVO.getPageSize());
         List<OrderListDTO> list = orderHeaderMapper.orderList(orderListReqVO);
-        OrderListResVO responce = new OrderListResVO();
+        OrderListResVO response = new OrderListResVO();
         if(!CollectionUtils.isEmpty(list)){
-            responce.setTotal(page.getTotal());
-            responce.setTotalPages(page.getPages());
-            responce.setRows(list);
+            response.setTotal(page.getTotal());
+            response.setTotalPages(page.getPages());
+            response.setRows(list);
         }
-        return responce;
+        return response;
+    }
+
+
+
+//    查询单个订单信息，包含订单头、订单行
+    @Override
+    public OrderDetailResVO orderDetail(OrderDetailReqVO orderDetailReqVO) {
+        OrderLine orderLine = new OrderLine();
+        BeanUtils.copyProperties(orderDetailReqVO,orderLine);
+        LambdaQueryWrapper<OrderLine> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OrderLine::getOrderId, orderLine.getOrderId());
+        List<OrderLine> list = orderLineService.list(queryWrapper);
+        List<OrderDetailDTO> list1 = list.stream().map(line->{
+            OrderDetailDTO orderDetailDTO = new OrderDetailDTO();
+            orderDetailDTO.setLineId(line.getLineId());
+            orderDetailDTO.setItemId(line.getItemId());
+            orderDetailDTO.setPrice(line.getPrice());
+            orderDetailDTO.setQuantity(line.getQuantity());
+            return orderDetailDTO;
+        }).collect(Collectors.toList());
+        OrderDetailResVO response = new OrderDetailResVO();
+        if(!CollectionUtils.isEmpty(list)){
+            response.setOrderId(orderHeaderService.getById(orderLine.getOrderId()).getOrderId());
+            response.setOrderNumber(orderHeaderService.getById(orderLine.getOrderId()).getOrderNumber());
+            response.setCustomerId(orderHeaderService.getById(orderLine.getOrderId()).getCustomerId());
+            response.setCustomerName(customerService.getById(orderHeaderService.getById(orderLine.getOrderId()).getCustomerId()).getCustomerName());
+            response.setLines(list1);
+        }
+        return response;
     }
 }
