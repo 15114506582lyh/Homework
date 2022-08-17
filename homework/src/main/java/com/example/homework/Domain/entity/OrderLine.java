@@ -20,5 +20,5 @@ public class OrderLine {
     @TableField("price")
     private BigDecimal price;
     @TableField("quantity")
-    private Double quantity;
+    private BigDecimal quantity;
 }

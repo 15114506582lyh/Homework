@@ -4,9 +4,9 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 @Data
-public class OrderDetailDTO {
+public class OrderLineDTO {
     private Integer lineId;
     private Integer itemId;
     private BigDecimal price;
-    private Double quantity;
+    private BigDecimal quantity;
 }

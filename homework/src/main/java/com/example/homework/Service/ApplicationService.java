@@ -9,4 +9,5 @@ public interface ApplicationService {
     InfoVO disable(CustomerIdReqVO customerIdReqVO);// 失效客户信息
     OrderListResVO orderList(OrderListReqVO orderListReqVO); // 订单信息列表查询，支持分页查询
     OrderDetailResVO orderDetail(OrderDetailReqVO orderDetailReqVO); // 查询单个订单信息，包含订单头、订单行
+    InfoVO orderSave(OrderSaveReqVO orderSaveReqVO); // 订单头行保存接口，订单头行一起保存
 }
