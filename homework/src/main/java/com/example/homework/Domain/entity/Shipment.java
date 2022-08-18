@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 
 @Data
@@ -19,10 +20,12 @@ public class Shipment {
     private String address;
     @TableField("phone")
     private String phone;
-    @TableField("shipment_date")
-    private Date shipmentDate;
+    @TableField("estimated_shipment_date")
+    private Date estimatedShipmentDate;
+    @TableField("actual_shipment_date")
+    private Date actualShipmentDate;
     @TableField("quantity")
     private Double quantity;
     @TableField("status")
-    private String status;
+    private BigDecimal status;
 }

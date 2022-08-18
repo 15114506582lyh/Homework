@@ -12,19 +12,30 @@ import com.example.homework.Domain.vo.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.util.StringUtil;
-import io.swagger.models.auth.In;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 public class ApplicationServiceImpl implements ApplicationService {
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Autowired
+    private OrderHeaderMapper orderHeaderMapper;
     @Autowired
     private CustomerService customerService;
     @Autowired
@@ -36,11 +47,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired
     private ItemService itemService;
     @Autowired
-    private OrderHeaderMapper orderHeaderMapper;
-
+    private ShipmentService shipmentService;
 
     //    客户信息列表查询，支持分页查询
     @Override
+
     public CustomerListResVO list(CustomerListReqVO customerListReqVO) {
         LambdaQueryWrapper<Customer> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtil.isNotEmpty(customerListReqVO.getCustomerNumber()), Customer::getCustomerNumber, customerListReqVO.getCustomerNumber());
@@ -180,24 +191,32 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @param infoVO
      * @return
      */
+
     private boolean checkOrderHeader(OrderSaveReqVO orderSaveReqVO, InfoVO infoVO) {
         Customer customer = customerService.getById(orderSaveReqVO.getCustomerId());
-        if (ObjectUtils.isNotEmpty(orderSaveReqVO.getOrderId())&&ObjectUtils.isNotEmpty(orderSaveReqVO.getOrderNumber())){
-            OrderHeader orderHeader = orderHeaderService.getById(orderSaveReqVO.getOrderId());
-            if (!orderSaveReqVO.getOrderNumber().equals(orderHeader.getOrderNumber())) {   // 检验通过订单ID获取的订单编码是否一致
-                infoVO.setInfo("订单号与商品编码不一致，失败");
-                return false;
-            }
-            else if (!orderHeader.getStatus().equals("登记")) {                           // 检验订单状态是否允许修改
-                infoVO.setInfo("无效的订单状态，失败");
-                return false;
-            }
-        } else if (ObjectUtils.isEmpty(orderSaveReqVO.getOrderId()) || ObjectUtils.isEmpty(orderSaveReqVO.getOrderNumber())) {}
-        if (!orderSaveReqVO.getCustomerId().equals(customer.getCustomerId())) { // 检验订单头的客户信息是否合法
+        OrderHeader orderHeader = orderHeaderService.getById(orderSaveReqVO.getOrderId());
+        if (ObjectUtils.isEmpty(orderSaveReqVO.getOrderId()) && ObjectUtils.isEmpty(orderSaveReqVO.getOrderNumber())) {
+            return true;
+        } else if (ObjectUtils.isEmpty(orderSaveReqVO.getOrderId()) || ObjectUtils.isEmpty(orderSaveReqVO.getOrderNumber())) {
+            infoVO.setInfo("订单id或订单编码不能为空，失败");
+            return false;
+        }
+        // 二者都有值
+        // 检验通过订单ID获取的订单编码是否一致
+        if (!orderSaveReqVO.getOrderNumber().equals(orderHeader.getOrderNumber())) {
+            infoVO.setInfo("订单号与订单编码不一致，失败");
+            return false;
+        }
+        // 检验订单状态是否允许修改
+        if (!orderHeader.getStatus().equals("登记")) {
+            infoVO.setInfo("无效的订单状态，失败");
+            return false;
+        }
+        // 检验订单头的客户信息是否合法
+        if (!orderSaveReqVO.getCustomerId().equals(customer.getCustomerId())) {
             infoVO.setInfo("无效的客户信息，失败");
             return false;
-        } else
-            return true;
+        }
     }
 
     /**
@@ -208,27 +227,34 @@ public class ApplicationServiceImpl implements ApplicationService {
     private boolean checkOrderLine(List<OrderLineDTO> lines, InfoVO infoVO) {
         // 检验商品信息是否合法
         List<Integer> list = new ArrayList<>();
-        lines.forEach(line->{
+        lines.forEach(line -> {
             list.add(line.getItemId());
         });
-        System.out.println(list);
-        Boolean b =new Boolean(true);
-        for(Integer itemId:list){
-            if(itemId.equals(itemService.getById(itemId).getItemId())){
-                b=true;
-            }else {
-                b=false;
+        Boolean b = new Boolean(true);
+        for (Integer itemId : list) {
+            if (itemId.equals(itemService.getById(itemId).getItemId())) {
+                b = true;
+            } else {
+                b = false;
                 infoVO.setInfo("无效的商品信息，失败");
                 break;
             }
         }
         return b;
     }
-    private void saveFunc(OrderSaveReqVO orderSaveReqVO,InfoVO infoVO) {
+
+    /**
+     * @param orderSaveReqVO
+     * @param infoVO
+     * @throws RuntimeException
+     */
+    @Transactional
+    public void saveFunc(OrderSaveReqVO orderSaveReqVO, InfoVO infoVO) throws RuntimeException {
         // 保存头信息
         OrderHeader orderHeader = new OrderHeader();
         BeanUtils.copyProperties(orderSaveReqVO, orderHeader);
         if (ObjectUtils.isEmpty(orderHeader.getOrderId())) {
+            orderHeader.setOrderNumber(seqGenerator("SO"));
             orderHeaderService.save(orderHeader);
             infoVO.setInfo("新建成功");
         } else {
@@ -244,7 +270,25 @@ public class ApplicationServiceImpl implements ApplicationService {
             orderLine.setOrderId(orderHeader.getOrderId());
             list.add(orderLine);
         });
-        orderLineService.saveOrUpdateBatch(list);
+        try {
+            orderLineService.saveOrUpdateBatch(list);
+        } catch (Exception exception) {
+            infoVO.setInfo("数据异常，操作失败");
+        }
+    }
+
+    public String seqGenerator(String key) {
+        //加上时间戳 如果不需要
+        String datetime = new SimpleDateFormat("yyyMMdd").format(new Date());
+        //查询 key 是否存在， 不存在返回 1 ，存在的话则自增加1
+        Long autoID = redisTemplate.opsForValue().increment(key + datetime, 1);
+        //这里是 4 位id，如果位数不够可以自行修改 ，下面的意思是 得到上面 key 的 值，位数为 4 ，不够	的话在左边补 0 ，比如  110 会变成  0110
+        String value = StringUtils.leftPad(String.valueOf(autoID), 5, "0");
+        //然后把 时间戳和优化后的 ID 拼接
+        String code = MessageFormat.format("{0}{1}", key + datetime, value);
+        //设置三天过期
+        redisTemplate.expire(key + datetime, 1, TimeUnit.DAYS);
+        return code;
     }
 
     @Override
@@ -260,8 +304,42 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
         // 保存操作
-        saveFunc(orderSaveReqVO,infoVO);
+        saveFunc(orderSaveReqVO, infoVO);
         return infoVO;
     }
 
+    /**
+     * 校验输入信息是否合法
+     * @param shipmentSaveReqVO
+     * @return
+     */
+    private boolean checkLines(ShipmentSaveReqVO shipmentSaveReqVO){
+        OrderLine orderLine= orderLineService.getById(shipmentSaveReqVO.getLines().get(0).getLineId());
+        OrderHeader orderHeader = orderHeaderService.getById(orderLine.getOrderId());
+        BigDecimal qu = new BigDecimal("o");
+        shipmentSaveReqVO.getLines().forEach(quantity->{
+            qu.add(quantity.getQuantity());
+        });
+        if (ObjectUtils.isNotEmpty(shipmentSaveReqVO.getLines().get(0).getLineId())
+                &&shipmentSaveReqVO.getLines().get(0).getLineId().equals(orderLine.getLineId())
+                &&orderHeader.getStatus().equals("登记")
+                &&qu.equals(orderLine.getQuantity())){
+                return true;
+        }
+        return false;
+    }
+    @Override
+    public InfoVO shipmentSave(ShipmentSaveReqVO shipmentSaveReqVO) {
+        InfoVO infoVO = new InfoVO();
+        if(!checkLines(shipmentSaveReqVO))
+            infoVO.setInfo("错误的输入信息，操作失败");
+        else {
+            String date=shipmentSaveReqVO.getLines().get(0).getEstimatedShipmentDate();
+            if (date.equals(null)){
+
+
+            }
+        }
+        return null;
+    }
 }

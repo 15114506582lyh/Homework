@@ -18,7 +18,7 @@ public class OrderHeader {
     @TableField("customer_id")
     private Integer customerId;
     @TableField("order_date")
-    private Date orderDate;
+    private String orderDate;
     @TableField("status")
     private String status;
 }
