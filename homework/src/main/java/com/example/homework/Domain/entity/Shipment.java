@@ -21,11 +21,11 @@ public class Shipment {
     @TableField("phone")
     private String phone;
     @TableField("estimated_shipment_date")
-    private Date estimatedShipmentDate;
+    private String estimatedShipmentDate;
     @TableField("actual_shipment_date")
-    private Date actualShipmentDate;
+    private String actualShipmentDate;
     @TableField("quantity")
-    private Double quantity;
+    private BigDecimal quantity;
     @TableField("status")
-    private BigDecimal status;
+    private String status;
 }

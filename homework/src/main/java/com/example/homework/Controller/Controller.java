@@ -2,11 +2,12 @@ package com.example.homework.Controller;
 
 import com.example.homework.Domain.entity.Item;
 import com.example.homework.Domain.service.CustomerLocationService;
+import com.example.homework.Domain.service.OrderHeaderService;
+import com.example.homework.Domain.service.ShipmentService;
 import com.example.homework.Domain.vo.*;
 import com.example.homework.Domain.service.ItemServiceImpl;
 import com.example.homework.Service.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,10 @@ public class Controller {
     private ApplicationService applicationService;
     @Autowired
     private CustomerLocationService customerLocationService;
+    @Autowired
+    private ShipmentService shipmentService;
+    @Autowired
+    private OrderHeaderService orderHeaderService;
 
 
 
@@ -124,12 +129,43 @@ public class Controller {
     public OrderDetailResVO detail(OrderDetailReqVO orderDetailReqVO){
         return applicationService.orderDetail(orderDetailReqVO);
     }
-
-
-
-//    订单头行保存接口，订单头行一起保存
+    /**
+     * 订单头行保存接口，订单头行一起保存
+     * @param orderSaveReqVO
+     * @return
+     */
     @PostMapping("/order/save")
-    public InfoVO rSave(@RequestBody OrderSaveReqVO orderSaveReqVO){
+    public InfoVO orderSave(@RequestBody OrderSaveReqVO orderSaveReqVO){
             return applicationService.orderSave(orderSaveReqVO);
+    }
+
+    /**
+     * 订单发货行保存接口
+     * @param shipmentSaveReqVO
+     * @return
+     */
+    @PostMapping("/order/shipment/save")
+    public InfoVO shipmentSave(@RequestBody ShipmentSaveReqVO shipmentSaveReqVO){
+        return applicationService.shipmentSave(shipmentSaveReqVO);
+    }
+
+    /**
+     *某个订单行下的发货行查询接口
+     * @param shipmentListReqVO
+     * @return
+     */
+    @PostMapping("/order/shipment/list")
+    public ShipmentListResVO shipmentList(@RequestBody ShipmenListAndSubmitReqVO shipmentListReqVO) {
+        return shipmentService.shipmentList(shipmentListReqVO);
+    }
+
+    /**
+     *订单头行提交接口
+     * @param orderDetailReqVO
+     * @return
+     */
+    @PostMapping("/order/submit")
+    public InfoVO orderSubmit(@RequestBody ShipmenListAndSubmitReqVO shipmenListAndSubmitReqVO){
+        return shipmentService.orderSubmit(shipmenListAndSubmitReqVO);
     }
 }

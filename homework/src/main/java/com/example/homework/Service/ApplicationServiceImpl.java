@@ -23,10 +23,7 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -51,7 +48,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     //    客户信息列表查询，支持分页查询
     @Override
-
     public CustomerListResVO list(CustomerListReqVO customerListReqVO) {
         LambdaQueryWrapper<Customer> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtil.isNotEmpty(customerListReqVO.getCustomerNumber()), Customer::getCustomerNumber, customerListReqVO.getCustomerNumber());
@@ -217,6 +213,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             infoVO.setInfo("无效的客户信息，失败");
             return false;
         }
+        return true;
     }
 
     /**
@@ -313,33 +310,62 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @param shipmentSaveReqVO
      * @return
      */
-    private boolean checkLines(ShipmentSaveReqVO shipmentSaveReqVO){
-        OrderLine orderLine= orderLineService.getById(shipmentSaveReqVO.getLines().get(0).getLineId());
+    private boolean checkShipment(ShipmentSaveReqVO shipmentSaveReqVO,InfoVO infoVO){
+
+        Shipment shipment = new Shipment();
+        Optional.ofNullable(shipmentSaveReqVO.getLines()).orElse(new ArrayList<>()).forEach(line->{
+            BeanUtils.copyProperties(line,shipment);
+        });
+        OrderLine orderLine= orderLineService.getById(shipment.getLineId());
         OrderHeader orderHeader = orderHeaderService.getById(orderLine.getOrderId());
-        BigDecimal qu = new BigDecimal("o");
+        BigDecimal qu = new BigDecimal("0");
         shipmentSaveReqVO.getLines().forEach(quantity->{
+            System.out.println(quantity.getQuantity());
             qu.add(quantity.getQuantity());
         });
-        if (ObjectUtils.isNotEmpty(shipmentSaveReqVO.getLines().get(0).getLineId())
-                &&shipmentSaveReqVO.getLines().get(0).getLineId().equals(orderLine.getLineId())
-                &&orderHeader.getStatus().equals("登记")
-                &&qu.equals(orderLine.getQuantity())){
-                return true;
+        // 判断订单行id是否为空
+        if (ObjectUtils.isEmpty(shipment.getLineId())){
+            infoVO.setInfo("订单行id为空，操作失败");
+            return false;
         }
-        return false;
+        // 判断订单行id是否存在
+        if (!(shipment.getLineId().equals(orderLine.getLineId()))){
+            infoVO.setInfo("找不到订单信息，操作失败");
+            return false;
+        }
+        // 判断订单状态
+        if (!(orderHeader.getStatus().equals("登记"))){
+            infoVO.setInfo("订单状态错误，操作失败");
+            return false;
+        }
+        // 判断商品数量
+        if (!qu.equals(orderLine.getQuantity())){
+            infoVO.setInfo("商品数量有误，操作失败");
+            return false;
+        }
+        return true;
     }
     @Override
     public InfoVO shipmentSave(ShipmentSaveReqVO shipmentSaveReqVO) {
+        Shipment shipment = new Shipment();
+        Optional.ofNullable(shipmentSaveReqVO.getLines()).orElse(new ArrayList<>()).forEach(line->{
+            BeanUtils.copyProperties(line,shipment);
+            });
+
         InfoVO infoVO = new InfoVO();
-        if(!checkLines(shipmentSaveReqVO))
-            infoVO.setInfo("错误的输入信息，操作失败");
-        else {
-            String date=shipmentSaveReqVO.getLines().get(0).getEstimatedShipmentDate();
-            if (date.equals(null)){
-
-
-            }
+        if(!checkShipment(shipmentSaveReqVO,infoVO)) {
         }
-        return null;
+        else {
+            if (shipment.getEstimatedShipmentDate().equals(null)){
+                Date date;
+                SimpleDateFormat sdf = new SimpleDateFormat( " yyyy-MM-dd HH:mm:ss " );
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.DATE, 14);
+                date = calendar.getTime();
+                shipmentSaveReqVO.getLines().get(0).setEstimatedShipmentDate(sdf.format(date));
+            }
+            shipmentService.saveOrUpdate(shipment);
+        }
+        return infoVO;
     }
 }
