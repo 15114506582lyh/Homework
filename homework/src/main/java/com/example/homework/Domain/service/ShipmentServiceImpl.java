@@ -6,17 +6,16 @@ import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.homework.DAO.ShipmentMapper;
 import com.example.homework.Domain.dto.ShipmentListDTO;
-import com.example.homework.Domain.entity.OrderHeader;
 import com.example.homework.Domain.entity.Shipment;
-import com.example.homework.Domain.vo.InfoVO;
-import com.example.homework.Domain.vo.OrderDetailReqVO;
-import com.example.homework.Domain.vo.ShipmenListAndSubmitReqVO;
-import com.example.homework.Domain.vo.ShipmentListResVO;
+import com.example.homework.Domain.vo.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,13 +27,13 @@ public class ShipmentServiceImpl extends ServiceImpl<ShipmentMapper, Shipment> i
     /**
      * 某个订单行下的发货行查询接口
      *
-     * @param shipmenListAndSubmitReqVO
+     * @param shipmentLineIdReqVO
      * @return
      */
     @Override
-    public ShipmentListResVO shipmentList(ShipmenListAndSubmitReqVO shipmenListAndSubmitReqVO) {
+    public ShipmentListResVO shipmentList(ShipmentLineIdReqVO shipmentLineIdReqVO) {
         LambdaQueryWrapper<Shipment> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ObjectUtils.isNotEmpty(shipmenListAndSubmitReqVO.getLineId()), Shipment::getLineId, shipmenListAndSubmitReqVO.getLineId());
+        queryWrapper.eq(ObjectUtils.isNotEmpty(shipmentLineIdReqVO.getLineId()), Shipment::getLineId, shipmentLineIdReqVO.getLineId());
         List<Shipment> list = shipmentService.list(queryWrapper);
         List<ShipmentListDTO> list1 = new ArrayList<>();
         ShipmentListResVO shipmentListResVO = new ShipmentListResVO();
@@ -49,19 +48,63 @@ public class ShipmentServiceImpl extends ServiceImpl<ShipmentMapper, Shipment> i
     }
 
     @Override
-    public InfoVO orderSubmit(ShipmenListAndSubmitReqVO shipmenListAndSubmitReqVO) {
+    public InfoVO orderSubmit(ShipmentLineIdReqVO shipmentLineIdReqVO) {
         InfoVO infoVO = new InfoVO();
         LambdaQueryWrapper<Shipment> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ObjectUtils.isNotEmpty(shipmenListAndSubmitReqVO.getLineId()), Shipment::getLineId, shipmenListAndSubmitReqVO.getLineId());
+        queryWrapper.eq(ObjectUtils.isNotEmpty(shipmentLineIdReqVO.getLineId()), Shipment::getLineId, shipmentLineIdReqVO.getLineId());
         List<Shipment> list = shipmentService.list(queryWrapper);
         Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(line -> {
             if (line.getStatus().equals("登记")) {
-                line.setStatus("待发货");
-                update(queryWrapper);
+                Shipment shipment = shipmentService.getById(line.getShipmentId());
+                shipment.setStatus("待发货");
+                updateById(shipment);
                 infoVO.setInfo("成功");
             } else
                 infoVO.setInfo("失败");
         });
+        return infoVO;
+    }
+
+    /**
+     * 订单发货行确认发货接口
+     * @param shipmentIdReqVO
+     * @return
+     */
+    @Override
+    public InfoVO shipmentConfirm(ShipmentIdReqVO shipmentIdReqVO) {
+        InfoVO infoVO = new InfoVO();
+        Shipment shipment = shipmentService.getById(shipmentIdReqVO.getShipmentId());
+        if(ObjectUtils.isNotEmpty(shipmentIdReqVO.getShipmentId())
+                &&shipment.getShipmentId().equals(shipmentIdReqVO.getShipmentId())){
+            if (shipment.getStatus().equals("待发货")||shipment.getStatus().equals("发货中")
+                    &&StringUtils.isNotEmpty(shipment.getActualShipmentDate())) {
+                Date date = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat( " yyyy-MM-dd HH:mm:ss " );
+                shipment.setActualShipmentDate(sdf.format(date));
+                shipment.setStatus("已发货");
+                updateById(shipment);
+                infoVO.setInfo("成功");
+            }else
+                infoVO.setInfo("订单状态不符");
+        }else
+            infoVO.setInfo("发货行为空或发货行不存在");
+        return infoVO;
+    }
+
+    /**
+     * 订单发货行删除接口
+     * @param shipmentIdReqVO
+     * @return
+     */
+    @Override
+    public InfoVO shipmentDelete(ShipmentIdReqVO shipmentIdReqVO) {
+        InfoVO infoVO = new InfoVO();
+        Shipment shipment = shipmentService.getById(shipmentIdReqVO.getShipmentId());
+        if (shipmentService.removeById(shipmentIdReqVO.getShipmentId())
+                && shipment.getStatus().equals("登记"))
+            infoVO.setInfo("成功");
+        else
+            infoVO.setInfo("失败");
         return infoVO;
     }
 }

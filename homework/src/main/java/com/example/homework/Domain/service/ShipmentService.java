@@ -2,12 +2,11 @@ package com.example.homework.Domain.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.homework.Domain.entity.Shipment;
-import com.example.homework.Domain.vo.InfoVO;
-import com.example.homework.Domain.vo.OrderDetailReqVO;
-import com.example.homework.Domain.vo.ShipmenListAndSubmitReqVO;
-import com.example.homework.Domain.vo.ShipmentListResVO;
+import com.example.homework.Domain.vo.*;
 
 public interface ShipmentService extends IService<Shipment> {
-    ShipmentListResVO shipmentList (ShipmenListAndSubmitReqVO shipmenListAndSubmitReqVO); // 某个订单行下的发货行查询接口
-    InfoVO orderSubmit(ShipmenListAndSubmitReqVO shipmenListAndSubmitReqVO); // 订单头行提交接口
+    ShipmentListResVO shipmentList (ShipmentLineIdReqVO shipmentLineIdReqVO); // 某个订单行下的发货行查询接口
+    InfoVO orderSubmit(ShipmentLineIdReqVO shipmentLineIdReqVO); // 订单头行提交接口
+    InfoVO shipmentConfirm(ShipmentIdReqVO shipmentIdReqVO); // 订单发货行确认发货接口
+    InfoVO shipmentDelete(ShipmentIdReqVO shipmentIdReqVO); // 订单发货行删除接口
 }

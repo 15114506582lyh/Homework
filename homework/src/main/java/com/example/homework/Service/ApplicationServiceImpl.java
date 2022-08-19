@@ -3,7 +3,9 @@ package com.example.homework.Service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.homework.DAO.OrderHeaderMapper;
+import com.example.homework.Domain.dto.CustomerDetailDTO;
 import com.example.homework.Domain.dto.OrderLineDTO;
 import com.example.homework.Domain.dto.OrderListDTO;
 import com.example.homework.Domain.entity.*;
@@ -46,9 +48,14 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired
     private ShipmentService shipmentService;
 
-    //    客户信息列表查询，支持分页查询
+    /**
+     * 客户信息列表查询，支持分页查询
+     *
+     * @param customerListReqVO
+     * @return
+     */
     @Override
-    public CustomerListResVO list(CustomerListReqVO customerListReqVO) {
+    public CustomerListResVO customerList(CustomerListReqVO customerListReqVO) {
         LambdaQueryWrapper<Customer> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtil.isNotEmpty(customerListReqVO.getCustomerNumber()), Customer::getCustomerNumber, customerListReqVO.getCustomerNumber());
         queryWrapper.like(StringUtil.isNotEmpty(customerListReqVO.getCustomerName()), Customer::getCustomerName, customerListReqVO.getCustomerName());
@@ -67,47 +74,90 @@ public class ApplicationServiceImpl implements ApplicationService {
         return response;
     }
 
-
-    //    查询单个客户信息
+    /**
+     * 查询单个客户信息
+     *
+     * @param customerIdReqVO
+     * @return
+     */
     @Override
-    public CustomerInfoResVO list(Integer id) {
+    public CustomerDetailResVO customerDetail(CustomerIdReqVO customerIdReqVO) {
         LambdaQueryWrapper<CustomerLocation> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ObjectUtils.isNotEmpty(id), CustomerLocation::getCustomerId, id);
-        List<CustomerLocation> list = customerLocationService.list(queryWrapper);
-        CustomerInfoResVO response = new CustomerInfoResVO();
-        Customer customer = customerService.getById(id);
-        if (!CollectionUtils.isEmpty(list)) {
-            response.setCustomerId(id);
-            response.setCustomerNumber(customer.getCustomerNumber());
-            response.setCustomerName(customer.getCustomerName());
-            response.setCustomerType(customer.getCustomerType());
-            response.setEmail(customer.getEmail());
-            response.setStatus(customer.getStatus());
-            response.setLocations(list);
-        }
-        return response;
-
-    }
-
-
-    //    保存客户信息，包含收货地点信息一起保存
-    @Override
-    public InfoVO save(CustomerInfoResVO customerInfoResVO) {
-        // 先处理头信息
-        Customer customer = new Customer();
-        BeanUtils.copyProperties(customerInfoResVO, customer);
-        InfoVO infoVO = new InfoVO();
-        if (customerService.getById(customer.getCustomerId()).getStatus().equals("有效")) {
-            customerService.saveOrUpdate(customer);
-
-            // 处理地点信息
-            Optional.ofNullable(customerInfoResVO.getLocations()).orElse(new ArrayList<>()).forEach(e -> {
-                e.setCustomerId(customer.getCustomerId());
-            });
-            customerLocationService.saveOrUpdateBatch(customerInfoResVO.getLocations());
-            infoVO.setInfo("保存成功");
+        Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
+        List<CustomerDetailDTO> customerDetailDTOList = new ArrayList<>();
+        CustomerDetailResVO response = new CustomerDetailResVO();
+        if (ObjectUtils.isNotEmpty(customer)) {
+            if (ObjectUtils.isNotEmpty(customerIdReqVO.getCustomerId())) {
+                if (ObjectUtils.isNotEmpty(customer.getCustomerId())) {
+                    Wrappers.lambdaQuery(CustomerLocation.class).eq()
+                    queryWrapper.eq(CustomerLocation::getCustomerId, customerIdReqVO.getCustomerId());
+                    List<CustomerLocation> list = customerLocationService.list(queryWrapper);
+                    Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(customerLocation -> {
+                        CustomerDetailDTO customerDetailDTO = new CustomerDetailDTO();
+                        BeanUtils.copyProperties(customerLocation, customerDetailDTO);
+                        customerDetailDTOList.add(customerDetailDTO);
+                    });
+                    if (!CollectionUtils.isEmpty(list)) {
+                        BeanUtils.copyProperties(customer, response);
+                        response.setLocations(customerDetailDTOList);
+                    } else
+                        response = null;
+                } else
+                    response = null;
+            } else
+                response = null;
         } else
-            infoVO.setInfo("保存失败");
+            response = null;
+        return response;
+    }
+    //
+
+    /**
+     * 保存客户信息，包含收货地点信息一起保存
+     * @param customerSaveReqVO
+     * @return
+     */
+    @Override
+    public InfoVO save(CustomerSaveReqVO customerSaveReqVO) {
+        InfoVO infoVO = new InfoVO();
+        Customer customer = new Customer();
+        // 处理头信息
+        if (ObjectUtils.isNotEmpty(customerSaveReqVO.getCustomerId())){
+            //更新
+            customer = customerService.getById(customerSaveReqVO.getCustomerId());
+            if (ObjectUtils.isNotEmpty(customer)){
+                if(customer.getStatus().equals("有效")) {
+                    BeanUtils.copyProperties(customerSaveReqVO, customer);
+                    customerService.updateById(customer);
+                    infoVO.setInfo("操作成功(更新)");
+                }else
+                    infoVO.setInfo(("不合法的客户状态,操作失败(更新)"));
+            }else
+                infoVO.setInfo(("找不到该客户,操作失败(更新)"));
+        }else {
+            //新增
+            BeanUtils.copyProperties(customerSaveReqVO, customer);
+            customerService.save(customer);
+        }
+        // 处理行信息
+        for (CustomerLocation customerLocation: customerSaveReqVO.getLocations()){
+            if (ObjectUtils.isNotEmpty(customerLocation.getLocationId())){
+                //更新
+                if(customerLocation.getLocationId().equals())
+            }
+        }
+
+//        if (customerService.getById(customer.getCustomerId()).getStatus().equals("有效")) {
+//            customerService.saveOrUpdate(customer);
+//
+//            // 处理地点信息
+//            Optional.ofNullable(customerDetailResVO.getLocations()).orElse(new ArrayList<>()).forEach(e -> {
+//                e.setCustomerId(customer.getCustomerId());
+//            });
+//            customerLocationService.saveOrUpdateBatch(customerDetailResVO.getLocations());
+//            infoVO.setInfo("保存成功");
+//        } else
+//            infoVO.setInfo("保存失败");
         return infoVO;
     }
 
@@ -152,9 +202,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     //    查询单个订单信息，包含订单头、订单行
     @Override
-    public OrderDetailResVO orderDetail(OrderDetailReqVO orderDetailReqVO) {
+    public OrderDetailResVO orderDetail(OrderIdReqVO orderIdReqVO) {
         OrderLine orderLine = new OrderLine();
-        BeanUtils.copyProperties(orderDetailReqVO, orderLine);
+        BeanUtils.copyProperties(orderIdReqVO, orderLine);
         LambdaQueryWrapper<OrderLine> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(OrderLine::getOrderId, orderLine.getOrderId());
         List<OrderLine> list = orderLineService.list(queryWrapper);
@@ -193,7 +243,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         OrderHeader orderHeader = orderHeaderService.getById(orderSaveReqVO.getOrderId());
         if (ObjectUtils.isEmpty(orderSaveReqVO.getOrderId()) && ObjectUtils.isEmpty(orderSaveReqVO.getOrderNumber())) {
             return true;
-        } else if (ObjectUtils.isEmpty(orderSaveReqVO.getOrderId()) || ObjectUtils.isEmpty(orderSaveReqVO.getOrderNumber())) {
+        } else if (ObjectUtils.isEmpty(orderSaveReqVO.getOrderId())
+                || ObjectUtils.isEmpty(orderSaveReqVO.getOrderNumber())) {
             infoVO.setInfo("订单id或订单编码不能为空，失败");
             return false;
         }
@@ -222,6 +273,13 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     private boolean checkOrderLine(List<OrderLineDTO> lines, InfoVO infoVO) {
+        StringBuider err
+        for (OrderLineDTO line : lines) {
+            Integer itemId = line.getItemId();
+            if () {
+
+            }
+        }
         // 检验商品信息是否合法
         List<Integer> list = new ArrayList<>();
         lines.forEach(line -> {
@@ -276,14 +334,14 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     public String seqGenerator(String key) {
         //加上时间戳 如果不需要
-        String datetime = new SimpleDateFormat("yyyMMdd").format(new Date());
+        String datetime = new SimpleDateFormat("yyyyMMdd").format(new Date());
         //查询 key 是否存在， 不存在返回 1 ，存在的话则自增加1
         Long autoID = redisTemplate.opsForValue().increment(key + datetime, 1);
-        //这里是 4 位id，如果位数不够可以自行修改 ，下面的意思是 得到上面 key 的 值，位数为 4 ，不够	的话在左边补 0 ，比如  110 会变成  0110
+        //这里是 5 位id，如果位数不够可以自行修改 ，下面的意思是 得到上面 key 的 值，位数为 5 ，不够	的话在左边补 0 ，比如  110 会变成  0110
         String value = StringUtils.leftPad(String.valueOf(autoID), 5, "0");
         //然后把 时间戳和优化后的 ID 拼接
         String code = MessageFormat.format("{0}{1}", key + datetime, value);
-        //设置三天过期
+        //设置1天过期
         redisTemplate.expire(key + datetime, 1, TimeUnit.DAYS);
         return code;
     }
@@ -307,64 +365,164 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     /**
      * 校验输入信息是否合法
+     *
      * @param shipmentSaveReqVO
      * @return
      */
-    private boolean checkShipment(ShipmentSaveReqVO shipmentSaveReqVO,InfoVO infoVO){
+    private boolean checkShipment(ShipmentSaveReqVO shipmentSaveReqVO, InfoVO infoVO) {
 
         Shipment shipment = new Shipment();
-        Optional.ofNullable(shipmentSaveReqVO.getLines()).orElse(new ArrayList<>()).forEach(line->{
-            BeanUtils.copyProperties(line,shipment);
+        Optional.ofNullable(shipmentSaveReqVO.getLines()).orElse(new ArrayList<>()).forEach(line -> {
+            BeanUtils.copyProperties(line, shipment);
         });
-        OrderLine orderLine= orderLineService.getById(shipment.getLineId());
+        OrderLine orderLine = orderLineService.getById(shipment.getLineId());
         OrderHeader orderHeader = orderHeaderService.getById(orderLine.getOrderId());
         BigDecimal qu = new BigDecimal("0");
-        shipmentSaveReqVO.getLines().forEach(quantity->{
-            System.out.println(quantity.getQuantity());
-            qu.add(quantity.getQuantity());
-        });
+        for (Shipment shipment1 : shipmentSaveReqVO.getLines()) {
+            qu = qu.add(shipment1.getQuantity());
+        }
+
+//        shipmentSaveReqVO.getLines().forEach(quantity -> {
+//            System.out.println(quantity.getQuantity());
+//            qu = qu.add(quantity.getQuantity());
+//        });
+
         // 判断订单行id是否为空
-        if (ObjectUtils.isEmpty(shipment.getLineId())){
+        if (ObjectUtils.isEmpty(shipment.getLineId())) {
             infoVO.setInfo("订单行id为空，操作失败");
             return false;
         }
         // 判断订单行id是否存在
-        if (!(shipment.getLineId().equals(orderLine.getLineId()))){
+        if (!(shipment.getLineId().equals(orderLine.getLineId()))) {
             infoVO.setInfo("找不到订单信息，操作失败");
             return false;
         }
         // 判断订单状态
-        if (!(orderHeader.getStatus().equals("登记"))){
+        if (!(orderHeader.getStatus().equals("登记"))) {
             infoVO.setInfo("订单状态错误，操作失败");
             return false;
         }
         // 判断商品数量
-        if (!qu.equals(orderLine.getQuantity())){
+        if (!qu.equals(orderLine.getQuantity())) {
             infoVO.setInfo("商品数量有误，操作失败");
             return false;
         }
         return true;
     }
+
     @Override
     public InfoVO shipmentSave(ShipmentSaveReqVO shipmentSaveReqVO) {
         Shipment shipment = new Shipment();
-        Optional.ofNullable(shipmentSaveReqVO.getLines()).orElse(new ArrayList<>()).forEach(line->{
-            BeanUtils.copyProperties(line,shipment);
-            });
+        Optional.ofNullable(shipmentSaveReqVO.getLines()).orElse(new ArrayList<>()).forEach(line -> {
+            BeanUtils.copyProperties(line, shipment);
+        });
 
         InfoVO infoVO = new InfoVO();
-        if(!checkShipment(shipmentSaveReqVO,infoVO)) {
-        }
-        else {
-            if (shipment.getEstimatedShipmentDate().equals(null)){
+        if (!checkShipment(shipmentSaveReqVO, infoVO)) {
+        } else {
+            if (shipment.getEstimatedShipmentDate().equals(null)) {
                 Date date;
-                SimpleDateFormat sdf = new SimpleDateFormat( " yyyy-MM-dd HH:mm:ss " );
+                SimpleDateFormat sdf = new SimpleDateFormat(" yyyy-MM-dd HH:mm:ss ");
                 Calendar calendar = Calendar.getInstance();
                 calendar.add(Calendar.DATE, 14);
                 date = calendar.getTime();
                 shipmentSaveReqVO.getLines().get(0).setEstimatedShipmentDate(sdf.format(date));
             }
             shipmentService.saveOrUpdate(shipment);
+        }
+        return infoVO;
+    }
+
+    /**
+     * 订单行删除接口
+     *
+     * @param shipmentLineIdReqVO
+     * @return
+     */
+    @Override
+    public InfoVO lineDelete(ShipmentLineIdReqVO shipmentLineIdReqVO) {
+        InfoVO infoVO = new InfoVO();
+        LambdaQueryWrapper<Shipment> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ObjectUtils.isNotEmpty(shipmentLineIdReqVO.getLineId()), Shipment::getLineId, shipmentLineIdReqVO.getLineId());
+        List<Shipment> list = shipmentService.list(queryWrapper);
+        List<Integer> list1 = new ArrayList<>();
+        Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(line -> {
+            if (line.getStatus().equals("登记")) {
+                list1.add(line.getShipmentId());
+            } else
+                infoVO.setInfo("失败");
+        });
+        if (shipmentService.removeByIds(list1)) {
+            orderLineService.removeById(shipmentLineIdReqVO.getLineId());
+            infoVO.setInfo("成功");
+        } else
+            infoVO.setInfo("shibai");
+        return infoVO;
+    }
+
+    @Override
+    public InfoVO orderClose(OrderIdReqVO orderIdReqVO) {
+        InfoVO infoVO = new InfoVO();
+        LambdaQueryWrapper<OrderLine> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ObjectUtils.isNotEmpty(orderIdReqVO.getOrderId()), OrderLine::getOrderId, orderIdReqVO.getOrderId());
+        List<String> stringList = new ArrayList<>();
+        List<OrderLine> list = orderLineService.list(queryWrapper);
+        Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(line -> {
+            Shipment shipment = new Shipment();
+            shipment.setLineId(line.getLineId());
+            LambdaQueryWrapper<Shipment> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(ObjectUtils.isNotEmpty(shipment.getLineId()), Shipment::getLineId, shipment.getLineId());
+            List<Shipment> l = shipmentService.list(lambdaQueryWrapper);
+            Optional.ofNullable(l).orElse(new ArrayList<>()).forEach(newline -> {
+                stringList.add(newline.getStatus());
+            });
+        });
+        for (String s : stringList) {
+            if (!s.equals("已发货")) {
+                infoVO.setInfo("失败");
+                return infoVO;
+            }
+        }
+        OrderHeader orderHeader = orderHeaderService.getById(orderIdReqVO.getOrderId());
+        orderHeader.setStatus("完成");
+        orderHeaderService.updateById(orderHeader);
+        infoVO.setInfo("成功");
+        return infoVO;
+    }
+
+    /**
+     * 订单取消接口
+     *
+     * @param orderIdReqVO
+     * @return
+     */
+    @Override
+    public InfoVO orderCancel(OrderIdReqVO orderIdReqVO) {
+        InfoVO infoVO = new InfoVO();
+        OrderHeader orderHeader = orderHeaderService.getById(orderIdReqVO.getOrderId());
+        System.out.println(orderHeader.getStatus());
+        if (!orderHeader.getStatus().equals("登记") && !orderHeader.getStatus().equals("待发货")) {
+            System.out.println(orderHeader.getStatus());
+            infoVO.setInfo("失败");
+            return infoVO;
+        } else {
+            orderHeader.setStatus("取消");
+            orderHeaderService.updateById(orderHeader);
+            LambdaQueryWrapper<OrderLine> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(ObjectUtils.isNotEmpty(orderIdReqVO.getOrderId()), OrderLine::getOrderId, orderIdReqVO.getOrderId());
+            List<OrderLine> list = orderLineService.list(queryWrapper);
+            Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(line -> {
+                Shipment shipment = new Shipment();
+                shipment.setLineId(line.getLineId());
+                LambdaQueryWrapper<Shipment> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+                lambdaQueryWrapper.eq(ObjectUtils.isNotEmpty(shipment.getLineId()), Shipment::getLineId, shipment.getLineId());
+                List<Shipment> l = shipmentService.list(lambdaQueryWrapper);
+                Optional.ofNullable(l).orElse(new ArrayList<>()).forEach(newline -> {
+                    newline.setStatus("取消");
+                    shipmentService.updateById(newline);
+                });
+            });
+            infoVO.setInfo("成功");
         }
         return infoVO;
     }
