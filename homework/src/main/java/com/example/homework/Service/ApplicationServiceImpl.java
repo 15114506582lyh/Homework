@@ -29,8 +29,10 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+
 @Service
 public class ApplicationServiceImpl implements ApplicationService {
+
     @Autowired
     private StringRedisTemplate redisTemplate;
     @Autowired
@@ -82,38 +84,39 @@ public class ApplicationServiceImpl implements ApplicationService {
      */
     @Override
     public CustomerDetailResVO customerDetail(CustomerIdReqVO customerIdReqVO) {
-        LambdaQueryWrapper<CustomerLocation> queryWrapper = new LambdaQueryWrapper<>();
-        Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
-        List<CustomerDetailDTO> customerDetailDTOList = new ArrayList<>();
+//        LambdaQueryWrapper<CustomerLocation> queryWrapper = new LambdaQueryWrapper<>();
+//        Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
+//        List<CustomerDetailDTO> customerDetailDTOList = new ArrayList<>();
         CustomerDetailResVO response = new CustomerDetailResVO();
-        if (ObjectUtils.isNotEmpty(customer)) {
-            if (ObjectUtils.isNotEmpty(customerIdReqVO.getCustomerId())) {
-                if (ObjectUtils.isNotEmpty(customer.getCustomerId())) {
-                    Wrappers.lambdaQuery(CustomerLocation.class).eq()
-                    queryWrapper.eq(CustomerLocation::getCustomerId, customerIdReqVO.getCustomerId());
-                    List<CustomerLocation> list = customerLocationService.list(queryWrapper);
-                    Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(customerLocation -> {
-                        CustomerDetailDTO customerDetailDTO = new CustomerDetailDTO();
-                        BeanUtils.copyProperties(customerLocation, customerDetailDTO);
-                        customerDetailDTOList.add(customerDetailDTO);
-                    });
-                    if (!CollectionUtils.isEmpty(list)) {
-                        BeanUtils.copyProperties(customer, response);
-                        response.setLocations(customerDetailDTOList);
-                    } else
-                        response = null;
-                } else
-                    response = null;
-            } else
-                response = null;
-        } else
-            response = null;
+//        if (ObjectUtils.isNotEmpty(customer)) {
+//            if (ObjectUtils.isNotEmpty(customerIdReqVO.getCustomerId())) {
+//                if (ObjectUtils.isNotEmpty(customer.getCustomerId())) {
+//                    Wrappers.lambdaQuery(CustomerLocation.class).eq()
+//                    queryWrapper.eq(CustomerLocation::getCustomerId, customerIdReqVO.getCustomerId());
+//                    List<CustomerLocation> list = customerLocationService.list(queryWrapper);
+//                    Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(customerLocation -> {
+//                        CustomerDetailDTO customerDetailDTO = new CustomerDetailDTO();
+//                        BeanUtils.copyProperties(customerLocation, customerDetailDTO);
+//                        customerDetailDTOList.add(customerDetailDTO);
+//                    });
+//                    if (!CollectionUtils.isEmpty(list)) {
+//                        BeanUtils.copyProperties(customer, response);
+//                        response.setLocations(customerDetailDTOList);
+//                    } else
+//                        response = null;
+//                } else
+//                    response = null;
+//            } else
+//                response = null;
+//        } else
+//            response = null;
         return response;
     }
     //
 
     /**
      * 保存客户信息，包含收货地点信息一起保存
+     *
      * @param customerSaveReqVO
      * @return
      */
@@ -122,30 +125,31 @@ public class ApplicationServiceImpl implements ApplicationService {
         InfoVO infoVO = new InfoVO();
         Customer customer = new Customer();
         // 处理头信息
-        if (ObjectUtils.isNotEmpty(customerSaveReqVO.getCustomerId())){
+        if (ObjectUtils.isNotEmpty(customerSaveReqVO.getCustomerId())) {
             //更新
             customer = customerService.getById(customerSaveReqVO.getCustomerId());
-            if (ObjectUtils.isNotEmpty(customer)){
-                if(customer.getStatus().equals("有效")) {
+            if (ObjectUtils.isNotEmpty(customer)) {
+                if (customer.getStatus().equals("有效")) {
                     BeanUtils.copyProperties(customerSaveReqVO, customer);
                     customerService.updateById(customer);
                     infoVO.setInfo("操作成功(更新)");
-                }else
+                } else
                     infoVO.setInfo(("不合法的客户状态,操作失败(更新)"));
-            }else
+            } else
                 infoVO.setInfo(("找不到该客户,操作失败(更新)"));
-        }else {
+        } else {
             //新增
             BeanUtils.copyProperties(customerSaveReqVO, customer);
             customerService.save(customer);
+
         }
         // 处理行信息
-        for (CustomerLocation customerLocation: customerSaveReqVO.getLocations()){
-            if (ObjectUtils.isNotEmpty(customerLocation.getLocationId())){
-                //更新
-                if(customerLocation.getLocationId().equals())
-            }
-        }
+//        for (CustomerLocation customerLocation: customerSaveReqVO.getLocations()){
+//            if (ObjectUtils.isNotEmpty(customerLocation.getLocationId())){
+//                //更新
+//                if(customerLocation.getLocationId().equals())
+//            }
+//        }
 
 //        if (customerService.getById(customer.getCustomerId()).getStatus().equals("有效")) {
 //            customerService.saveOrUpdate(customer);
@@ -273,12 +277,12 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     private boolean checkOrderLine(List<OrderLineDTO> lines, InfoVO infoVO) {
-        StringBuider err
+//        StringBuider err
         for (OrderLineDTO line : lines) {
             Integer itemId = line.getItemId();
-            if () {
-
-            }
+//            if () {
+//
+//            }
         }
         // 检验商品信息是否合法
         List<Integer> list = new ArrayList<>();
