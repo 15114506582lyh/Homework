@@ -82,82 +82,59 @@ public class ApplicationServiceImpl implements ApplicationService {
      */
     @Override
     public CustomerDetailResVO customerDetail(CustomerIdReqVO customerIdReqVO) {
-        LambdaQueryWrapper<CustomerLocation> queryWrapper = new LambdaQueryWrapper<>();
         Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
-        List<CustomerDetailDTO> customerDetailDTOList = new ArrayList<>();
-        CustomerDetailResVO response = new CustomerDetailResVO();
+        CustomerDetailResVO detail = new CustomerDetailResVO();
         if (ObjectUtils.isNotEmpty(customer)) {
-            if (ObjectUtils.isNotEmpty(customerIdReqVO.getCustomerId())) {
-                if (ObjectUtils.isNotEmpty(customer.getCustomerId())) {
-                    Wrappers.lambdaQuery(CustomerLocation.class).eq()
-                    queryWrapper.eq(CustomerLocation::getCustomerId, customerIdReqVO.getCustomerId());
-                    List<CustomerLocation> list = customerLocationService.list(queryWrapper);
-                    Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(customerLocation -> {
-                        CustomerDetailDTO customerDetailDTO = new CustomerDetailDTO();
-                        BeanUtils.copyProperties(customerLocation, customerDetailDTO);
-                        customerDetailDTOList.add(customerDetailDTO);
-                    });
-                    if (!CollectionUtils.isEmpty(list)) {
-                        BeanUtils.copyProperties(customer, response);
-                        response.setLocations(customerDetailDTOList);
-                    } else
-                        response = null;
-                } else
-                    response = null;
-            } else
-                response = null;
-        } else
-            response = null;
-        return response;
+            BeanUtils.copyProperties(customer, detail);
+            LambdaQueryWrapper<CustomerLocation> queryWrapper = Wrappers.lambdaQuery(CustomerLocation.class)
+                    .eq(CustomerLocation::getCustomerId, customerIdReqVO.getCustomerId());
+            List<CustomerLocation> list = customerLocationService.list(queryWrapper);
+            List<CustomerDetailDTO> customerDetailDTOList = new ArrayList<>();
+            CustomerDetailDTO customerDetailDTO = new CustomerDetailDTO();
+            for (CustomerLocation customerLocation : list) {
+                BeanUtils.copyProperties(customerLocation, customerDetailDTO);
+                customerDetailDTOList.add(customerDetailDTO);
+            }
+            if (!CollectionUtils.isEmpty(customerDetailDTOList)) {
+                detail.setLocations(customerDetailDTOList);
+            } else {
+                detail.setStatus("该客户目前无地址");
+            }
+        } else {
+            detail.setCustomerId(customerIdReqVO.getCustomerId());
+            detail.setStatus("找不到该客户");
+        }
+        return detail;
     }
-    //
 
     /**
      * 保存客户信息，包含收货地点信息一起保存
+     *
      * @param customerSaveReqVO
      * @return
      */
     @Override
-    public InfoVO save(CustomerSaveReqVO customerSaveReqVO) {
+    @Transactional(rollbackFor = Exception.class)
+    public InfoVO save(CustomerSaveReqVO customerSaveReqVO) throws Exception {
         InfoVO infoVO = new InfoVO();
+        /**
+         * 处理头信息
+         */
         Customer customer = new Customer();
-        // 处理头信息
-        if (ObjectUtils.isNotEmpty(customerSaveReqVO.getCustomerId())){
-            //更新
-            customer = customerService.getById(customerSaveReqVO.getCustomerId());
-            if (ObjectUtils.isNotEmpty(customer)){
-                if(customer.getStatus().equals("有效")) {
-                    BeanUtils.copyProperties(customerSaveReqVO, customer);
-                    customerService.updateById(customer);
-                    infoVO.setInfo("操作成功(更新)");
-                }else
-                    infoVO.setInfo(("不合法的客户状态,操作失败(更新)"));
-            }else
-                infoVO.setInfo(("找不到该客户,操作失败(更新)"));
-        }else {
-            //新增
-            BeanUtils.copyProperties(customerSaveReqVO, customer);
-            customerService.save(customer);
+        BeanUtils.copyProperties(customerSaveReqVO, customer);
+        customerService.saveOrUpdate(customer);
+        /**
+         * 处理行信息
+         */
+        try {
+            Optional.ofNullable(customerSaveReqVO.getLocations()).orElse(new ArrayList<>()).forEach(customerLocation -> {
+                customerLocation.setCustomerId(customer.getCustomerId());
+                customerLocationService.saveOrUpdate(customerLocation);
+            });
+            infoVO.setInfo("操作成功");
+        }catch (Exception exception){
+            throw new Exception("发生未知错误，操作失败");
         }
-        // 处理行信息
-        for (CustomerLocation customerLocation: customerSaveReqVO.getLocations()){
-            if (ObjectUtils.isNotEmpty(customerLocation.getLocationId())){
-                //更新
-                if(customerLocation.getLocationId().equals())
-            }
-        }
-
-//        if (customerService.getById(customer.getCustomerId()).getStatus().equals("有效")) {
-//            customerService.saveOrUpdate(customer);
-//
-//            // 处理地点信息
-//            Optional.ofNullable(customerDetailResVO.getLocations()).orElse(new ArrayList<>()).forEach(e -> {
-//                e.setCustomerId(customer.getCustomerId());
-//            });
-//            customerLocationService.saveOrUpdateBatch(customerDetailResVO.getLocations());
-//            infoVO.setInfo("保存成功");
-//        } else
-//            infoVO.setInfo("保存失败");
         return infoVO;
     }
 
@@ -273,12 +250,11 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     private boolean checkOrderLine(List<OrderLineDTO> lines, InfoVO infoVO) {
-        StringBuider err
         for (OrderLineDTO line : lines) {
             Integer itemId = line.getItemId();
-            if () {
-
-            }
+//            if () {
+//
+//            }
         }
         // 检验商品信息是否合法
         List<Integer> list = new ArrayList<>();

@@ -8,6 +8,7 @@ import com.example.homework.Domain.vo.*;
 import com.example.homework.Domain.service.ItemServiceImpl;
 import com.example.homework.Service.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class Controller {
      * @return
      */
     @GetMapping("/item/detail")
-    public Item detail(ItemIdReqVO itemIdReqVO) {
+    public Item detail(@Validated ItemIdReqVO itemIdReqVO) {
         return itemService.itemDetail(itemIdReqVO);
     }
     /**
@@ -49,7 +50,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/item/create")
-    public InfoVO create(@RequestBody ItemCreateReqVO itemCreateReqVO) {
+    public InfoVO create(@Validated @RequestBody ItemCreateReqVO itemCreateReqVO) {
         return itemService.itemCreate(itemCreateReqVO);
     }
     /**
@@ -58,7 +59,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/item/update")
-    public InfoVO update(@RequestBody Item item) {
+    public InfoVO update(@Validated @RequestBody Item item) {
         return itemService.itemUpdate(item);
     }
     /**
@@ -67,7 +68,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/item/disable")
-    public InfoVO disable(@RequestBody ItemIdReqVO itemIdReqVO) {
+    public InfoVO disable(@Validated @RequestBody ItemIdReqVO itemIdReqVO) {
         return itemService.itemDisable(itemIdReqVO);
     }
     /**
@@ -85,7 +86,7 @@ public class Controller {
      * @return
      */
     @GetMapping("/customer/detail")
-    public CustomerDetailResVO detail(CustomerIdReqVO customerIdReqVO) {
+    public CustomerDetailResVO detail(@Validated CustomerIdReqVO customerIdReqVO) {
         return applicationService.customerDetail(customerIdReqVO);
     }
     /**
@@ -94,7 +95,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/customer/save")
-    public InfoVO save(@RequestBody CustomerSaveReqVO customerSaveReqVO) {
+    public InfoVO save(@Validated @RequestBody CustomerSaveReqVO customerSaveReqVO) throws Exception {
         return applicationService.save(customerSaveReqVO);
     }
 
