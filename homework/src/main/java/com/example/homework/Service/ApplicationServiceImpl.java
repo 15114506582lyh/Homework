@@ -137,9 +137,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         return infoVO;
     }
-
-
-    //    失效客户信息
+    /**
+     * 失效客户信息
+     * @param customerIdReqVO
+     * @return
+     */
     @Override
     public InfoVO disable(CustomerIdReqVO customerIdReqVO) {
         InfoVO infoVO = new InfoVO();
