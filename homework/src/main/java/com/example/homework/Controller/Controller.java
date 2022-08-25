@@ -146,16 +146,16 @@ public class Controller {
         return applicationService.orderDetail(orderIdReqVO);
     }
 
-    /**
-     * 订单头行保存接口，订单头行一起保存
-     *
-     * @param orderSaveReqVO
-     * @return
-     */
-    @PostMapping("/order/save")
-    public InfoVO orderSave(@RequestBody OrderSaveReqVO orderSaveReqVO) {
-        return applicationService.orderSave(orderSaveReqVO);
-    }
+//    /**
+//     * 订单头行保存接口，订单头行一起保存
+//     *
+//     * @param orderSaveReqVO
+//     * @return
+//     */
+//    @PostMapping("/order/save")
+//    public InfoVO orderSave(@Validated @RequestBody OrderSaveReqVO orderSaveReqVO) throws Exception {
+//        return applicationService.orderSave(orderSaveReqVO);
+//    }
 
     /**
      * 订单发货行保存接口
@@ -175,19 +175,19 @@ public class Controller {
      * @return
      */
     @PostMapping("/order/shipment/list")
-    public ShipmentListResVO shipmentList(@RequestBody ShipmentLineIdReqVO shipmentListReqVO) {
+    public ShipmentListResVO shipmentList(@Validated @RequestBody ShipmentLineIdReqVO shipmentListReqVO) {
         return shipmentService.shipmentList(shipmentListReqVO);
     }
 
     /**
      * 订单头行提交接口
      *
-     * @param shipmentLineIdReqVO
+     * @param orderIdReqVO
      * @return
      */
     @PostMapping("/order/submit")
-    public InfoVO submit(@RequestBody ShipmentLineIdReqVO shipmentLineIdReqVO) {
-        return shipmentService.orderSubmit(shipmentLineIdReqVO);
+    public InfoVO submit(@Validated @RequestBody OrderIdReqVO orderIdReqVO) {
+        return orderHeaderService.orderSubmit(orderIdReqVO);
     }
 
     /**
@@ -208,7 +208,7 @@ public class Controller {
      * @return
      */
     @DeleteMapping("/order/line/delete")
-    public InfoVO delete(@RequestBody ShipmentLineIdReqVO shipmentLineIdReqVO) {
+    public InfoVO delete(@Validated @RequestBody ShipmentLineIdReqVO shipmentLineIdReqVO) {
         return applicationService.lineDelete(shipmentLineIdReqVO);
     }
 

@@ -3,6 +3,7 @@ package com.example.homework.Domain.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.homework.DAO.ShipmentMapper;
 import com.example.homework.Domain.dto.ShipmentListDTO;
@@ -32,39 +33,20 @@ public class ShipmentServiceImpl extends ServiceImpl<ShipmentMapper, Shipment> i
      */
     @Override
     public ShipmentListResVO shipmentList(ShipmentLineIdReqVO shipmentLineIdReqVO) {
-        LambdaQueryWrapper<Shipment> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ObjectUtils.isNotEmpty(shipmentLineIdReqVO.getLineId()), Shipment::getLineId, shipmentLineIdReqVO.getLineId());
-        List<Shipment> list = shipmentService.list(queryWrapper);
-        List<ShipmentListDTO> list1 = new ArrayList<>();
+        LambdaQueryWrapper<Shipment> wrapper = Wrappers.lambdaQuery(Shipment.class).
+                eq(ObjectUtils.isNotEmpty(shipmentLineIdReqVO.getLineId()),Shipment::getLineId,shipmentLineIdReqVO.getLineId());
+        List<Shipment> shipments = shipmentService.list(wrapper);
+        List<ShipmentListDTO> list = new ArrayList<>();
         ShipmentListResVO shipmentListResVO = new ShipmentListResVO();
-        Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(line -> {
+        Optional.ofNullable(shipments).orElse(new ArrayList<>()).forEach(line -> {
             ShipmentListDTO shipmentListDTO = new ShipmentListDTO();
             BeanUtils.copyProperties(line, shipmentListDTO);
-            list1.add(shipmentListDTO);
+            list.add(shipmentListDTO);
         });
-        if (!CollectionUtils.isEmpty(list1))
-            shipmentListResVO.setLines(list1);
+        if (!CollectionUtils.isEmpty(list))
+            shipmentListResVO.setLines(list);
         return shipmentListResVO;
     }
-
-    @Override
-    public InfoVO orderSubmit(ShipmentLineIdReqVO shipmentLineIdReqVO) {
-        InfoVO infoVO = new InfoVO();
-        LambdaQueryWrapper<Shipment> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ObjectUtils.isNotEmpty(shipmentLineIdReqVO.getLineId()), Shipment::getLineId, shipmentLineIdReqVO.getLineId());
-        List<Shipment> list = shipmentService.list(queryWrapper);
-        Optional.ofNullable(list).orElse(new ArrayList<>()).forEach(line -> {
-            if (line.getStatus().equals("登记")) {
-                Shipment shipment = shipmentService.getById(line.getShipmentId());
-                shipment.setStatus("待发货");
-                updateById(shipment);
-                infoVO.setInfo("成功");
-            } else
-                infoVO.setInfo("失败");
-        });
-        return infoVO;
-    }
-
     /**
      * 订单发货行确认发货接口
      * @param shipmentIdReqVO
