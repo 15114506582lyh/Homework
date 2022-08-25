@@ -8,6 +8,7 @@ import java.util.Date;
 
 @Data
 public class OrderListReqVO extends PaginationQuerySupport{
+
     private String customerName;
     private String orderNumber;
 //    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

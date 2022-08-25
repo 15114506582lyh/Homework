@@ -40,12 +40,15 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
         // 处理分页返回结果
         ItemListResVO response = new ItemListResVO();
         if (!CollectionUtils.isEmpty(list)) {
+            response.setInfo("查找成功");
             //返回查询总条数
             response.setTotal(page.getTotal());
             //返回总页数
             response.setTotalPages(page.getPages());
             //返回查询结果
             response.setRows(list);
+        }else {
+            response.setInfo("找不到符合条件的商品");
         }
         return response;
     }
@@ -80,8 +83,11 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
         InfoVO infoVO = new InfoVO();
         Item item = new Item();
         BeanUtils.copyProperties(itemCreateReqVO, item);
-        save(item);
-        infoVO.setInfo("操作成功");
+        if (save(item)) {
+            infoVO.setInfo("添加成功");
+        }else {
+            infoVO.setInfo("添加失败");
+        }
         return infoVO;
     }
 
@@ -96,9 +102,9 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
         InfoVO infoVO = new InfoVO();
         if (ObjectUtils.isNotEmpty(itemService.getById(item.getItemId()))) {
             updateById(item);
-            infoVO.setInfo("操作成功");
+            infoVO.setInfo("更新成功");
         }else {
-            infoVO.setInfo("商品不存在，操作失败");
+            infoVO.setInfo("商品不存在，更新失败");
         }
         return infoVO;
     }

@@ -11,7 +11,6 @@ import java.util.List;
 
 @Data
 public class CustomerSaveReqVO {
-    @NotNull(message = "客户id不能为空")
     private Integer customerId;
     @NotBlank(message = "客户编码不能为空")
     private String customerNumber;

@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class OrderListResVO extends PaginationResultSupport{
-
+    private String info;
     List<OrderListDTO> rows;
 
 }

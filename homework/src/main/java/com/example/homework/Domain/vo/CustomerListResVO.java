@@ -7,5 +7,6 @@ import java.util.List;
 
 @Data
 public class CustomerListResVO extends PaginationResultSupport {
+    private String info;
     List<Customer> rows;
 }

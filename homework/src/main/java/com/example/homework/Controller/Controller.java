@@ -98,39 +98,51 @@ public class Controller {
     public InfoVO save(@Validated @RequestBody CustomerSaveReqVO customerSaveReqVO) throws Exception {
         return applicationService.save(customerSaveReqVO);
     }
-
-
-    //    失效客户信息
+    /**
+     * 失效客户信息
+     * @param customerIdReqVO
+     * @return
+     */
     @PostMapping("/customer/disable")
-    public InfoVO disable(@RequestBody CustomerIdReqVO customerIdReqVO) {
+    public InfoVO disable(@Validated @RequestBody CustomerIdReqVO customerIdReqVO) {
         return applicationService.disable(customerIdReqVO);
     }
 
-
-    //    删除客户收货地点
+    /**
+     * 删除客户收货地点
+     * @param locationIdReqVO
+     * @return
+     */
     @DeleteMapping("/customer/location/delete")
-    public InfoVO delete(@RequestBody LocationIdReqVO locationIdReqVO) {
+    public InfoVO delete(@Validated @RequestBody LocationIdReqVO locationIdReqVO) {
         return customerLocationService.locationDelete(locationIdReqVO);
     }
-
-
-    //    客户地点选择器，查询单个客户下面的收货地点
+    /**
+     * 客户地点选择器，查询单个客户下面的收货地点
+     * @param customerIdReqVO
+     * @return
+     */
     @PostMapping("/customer/location/selector")
-    public List<LocationSelectorResVO> select(@RequestBody CustomerIdReqVO customerIdReqVO) {
+    public LocationSelectorResVO select(@Validated @RequestBody CustomerIdReqVO customerIdReqVO) {
         return customerLocationService.select(customerIdReqVO);
     }
-
-
-    //    订单信息列表查询，支持分页查询
+    /**
+     * 订单信息列表查询，支持分页查询
+     * @param orderListReqVO
+     * @return
+     */
     @PostMapping("/order/list")
     public OrderListResVO list(@RequestBody OrderListReqVO orderListReqVO) {
         return applicationService.orderList(orderListReqVO);
     }
 
-
-    //    查询单个订单信息，包含订单头、订单行
+    /**
+     * 查询单个订单信息，包含订单头、订单行
+     * @param orderIdReqVO
+     * @return
+     */
     @GetMapping("/order/detail")
-    public OrderDetailResVO detail(OrderIdReqVO orderIdReqVO) {
+    public OrderDetailResVO detail(@Validated OrderIdReqVO orderIdReqVO) {
         return applicationService.orderDetail(orderIdReqVO);
     }
 

@@ -11,5 +11,5 @@ import java.util.List;
 
 public interface CustomerLocationService extends IService<CustomerLocation> {
     InfoVO locationDelete(LocationIdReqVO locationIdReqVO); // 删除客户收货地点
-    List<LocationSelectorResVO> select(CustomerIdReqVO customerIdReqVO); // 客户地点选择器，查询单个客户下面的收货地点
+    LocationSelectorResVO select(CustomerIdReqVO customerIdReqVO); // 客户地点选择器，查询单个客户下面的收货地点
 }

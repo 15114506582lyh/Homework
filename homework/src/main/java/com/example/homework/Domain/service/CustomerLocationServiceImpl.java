@@ -1,8 +1,13 @@
 package com.example.homework.Domain.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.homework.DAO.CustomerLocationMapper;
+import com.example.homework.Domain.dto.LocationSelectorDTO;
+import com.example.homework.Domain.entity.Customer;
 import com.example.homework.Domain.entity.CustomerLocation;
 import com.example.homework.Domain.entity.OrderHeader;
 import com.example.homework.Domain.vo.CustomerIdReqVO;
@@ -25,7 +30,13 @@ public class CustomerLocationServiceImpl extends ServiceImpl<CustomerLocationMap
 
 
 
-    //    删除客户收货地点
+    //
+
+    /**
+     * 删除客户收货地点
+     * @param locationIdReqVO
+     * @return
+     */
     @Override
     public InfoVO locationDelete(LocationIdReqVO locationIdReqVO) {
         InfoVO infoVO = new InfoVO();
@@ -38,20 +49,32 @@ public class CustomerLocationServiceImpl extends ServiceImpl<CustomerLocationMap
 
 
 
-//    客户地点选择器，查询单个客户下面的收货地点
+//
+
+    /**
+     * 客户地点选择器，查询单个客户下面的收货地点
+     * @param customerIdReqVO
+     * @return
+     */
 
     @Override
-    public List<LocationSelectorResVO> select(CustomerIdReqVO customerIdReqVO) {
-        QueryWrapper<CustomerLocation> wrapper = new QueryWrapper<>();
-        wrapper.eq("customer_id",customerIdReqVO.getCustomerId());
+    public LocationSelectorResVO select(CustomerIdReqVO customerIdReqVO) {
+        LambdaQueryWrapper wrapper = Wrappers.lambdaQuery(CustomerLocation.class).
+                eq(ObjectUtils.isNotEmpty(customerIdReqVO.getCustomerId()),CustomerLocation::getCustomerId,customerIdReqVO.getCustomerId());
         List<CustomerLocation> list = customerLocationService.list(wrapper);
-        List<LocationSelectorResVO> list1 = list.stream().map(location->{
-            LocationSelectorResVO locationSelectorResVO = new LocationSelectorResVO();
-            locationSelectorResVO.setLocationId(location.getLocationId());
-            locationSelectorResVO.setAddress(location.getAddress());
-            locationSelectorResVO.setPhone(location.getPhone());
-            return locationSelectorResVO;
-        }).collect(Collectors.toList());
-        return list1;
+        List<LocationSelectorDTO> locationSelectorDTOS = new ArrayList<>();
+        LocationSelectorResVO locationSelectorResVO = new LocationSelectorResVO();
+        if (ObjectUtils.isNotEmpty(list)) {
+            LocationSelectorDTO locationSelectorDTO = new LocationSelectorDTO();
+            for (CustomerLocation customerLocation : list) {
+                BeanUtils.copyProperties(customerLocation, locationSelectorDTO);
+                locationSelectorDTOS.add(locationSelectorDTO);
+            }
+            locationSelectorResVO.setLocations(locationSelectorDTOS);
+            locationSelectorResVO.setInfo("查找成功");
+        }else {
+            locationSelectorResVO.setInfo("找不到该顾客");
+        }
+        return locationSelectorResVO;
     }
 }

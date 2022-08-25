@@ -1,10 +1,12 @@
 package com.example.homework.Domain.vo;
 
+import com.example.homework.Domain.dto.LocationSelectorDTO;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class LocationSelectorResVO {
-    private Integer locationId;
-    private String address;
-    private String phone;
+    private String info;
+    private List<LocationSelectorDTO> locations;
 }
