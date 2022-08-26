@@ -15,5 +15,5 @@ public interface ApplicationService {
     InfoVO lineDelete(OrderLineIdReqVO orderLineIdReqVO); // 订单行删除接口
     InfoVO shipmentDelete(ShipmentIdReqVO shipmentIdReqVO); // 订单发货行删除接口
     InfoVO orderClose(OrderIdReqVO orderIdReqVO); // 订单关闭接口
-    InfoVO orderCancel(OrderIdReqVO orderIdReqVO); // 订单取消接口
+    InfoVO orderCancel(OrderIdReqVO orderIdReqVO) throws Exception; // 订单取消接口
 }

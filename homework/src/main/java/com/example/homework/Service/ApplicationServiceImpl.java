@@ -27,6 +27,7 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class ApplicationServiceImpl implements ApplicationService {
@@ -161,14 +162,16 @@ public class ApplicationServiceImpl implements ApplicationService {
         LambdaQueryWrapper<OrderHeader> wrapper = Wrappers.lambdaQuery(OrderHeader.class).
                 eq(ObjectUtils.isNotEmpty(customer.getCustomerId()), OrderHeader::getCustomerId, customer.getCustomerId());
         List<OrderHeader> orderHeaders = orderHeaderService.list(wrapper);
-        if (ObjectUtils.isNotEmpty(orderHeaders)) {
-            for (OrderHeader orderHeader : orderHeaders) {
-                if (!("完成").equals(orderHeader.getStatus()) || !("取消").equals(orderHeader.getStatus())) {
-                    infoVO.setInfo("订单未完成，用户" + customer.getCustomerId() + "不能失效");
-                    return infoVO;
-                }
-            }
-        }
+        List<String> orderStatusList = orderHeaders.stream().map(OrderHeader::getStatus).distinct().collect(Collectors.toList());
+        System.out.println(orderStatusList.toString());
+//        if (ObjectUtils.isNotEmpty(orderHeaders)) {
+//            for (OrderHeader orderHeader : orderHeaders) {
+//                if (!("完成").equals(orderHeader.getStatus()) || !("取消").equals(orderHeader.getStatus())) {
+//                    infoVO.setInfo("订单未完成，用户" + customer.getCustomerId() + "不能失效");
+//                    return infoVO;
+//                }
+//            }
+//        }
         customer.setStatus("失效");
         return infoVO;
     }
@@ -538,7 +541,8 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     @Override
-    public InfoVO orderCancel(OrderIdReqVO orderIdReqVO) {
+    @Transactional(rollbackFor = Exception.class)
+    public InfoVO orderCancel(OrderIdReqVO orderIdReqVO) throws Exception {
         InfoVO infoVO = new InfoVO();
         OrderHeader orderHeader = orderHeaderService.getById(orderIdReqVO.getOrderId());
         if (ObjectUtils.isEmpty(orderHeader)) {
@@ -561,9 +565,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                 shipmentService.updateById(shipment);
             });
         });
-        orderHeader.setStatus("已取消");
-        orderHeaderService.updateById(orderHeader);
-        infoVO.setInfo("订单已取消");
+        try {
+            orderHeader.setStatus("已取消");
+            orderHeaderService.updateById(orderHeader);
+            infoVO.setInfo("订单已取消");
+        }catch (Exception exception){
+            throw  new Exception("发生未知错误，订单未取消");
+        }
         return infoVO;
     }
 }

@@ -235,7 +235,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/order/cancel")
-    public InfoVO orderCancel(@Validated @RequestBody OrderIdReqVO orderIdReqVO){
+    public InfoVO orderCancel(@Validated @RequestBody OrderIdReqVO orderIdReqVO) throws Exception {
         return applicationService.orderCancel(orderIdReqVO);
     }
 }
