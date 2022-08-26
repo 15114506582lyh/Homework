@@ -9,9 +9,11 @@ public interface ApplicationService {
     InfoVO disable(CustomerIdReqVO customerIdReqVO);// 失效客户信息
     OrderListResVO orderList(OrderListReqVO orderListReqVO); // 订单信息列表查询，支持分页查询
     OrderDetailResVO orderDetail(OrderIdReqVO orderIdReqVO); // 查询单个订单信息，包含订单头、订单行
-//    InfoVO orderSave(OrderSaveReqVO orderSaveReqVO) throws Exception; // 订单头行保存接口，订单头行一起保存
+    InfoVO orderSave(OrderSaveReqVO orderSaveReqVO) throws Exception; // 订单头行保存接口，订单头行一起保存
     InfoVO shipmentSave(ShipmentSaveReqVO shipmentSaveReqVO); // 订单发货行保存接口
-    InfoVO lineDelete(ShipmentLineIdReqVO shipmentLineIdReqVO); // 订单行删除接口
+    InfoVO shipmentConfirm(ShipmentIdReqVO shipmentIdReqVO); // 订单发货行确认发货接口
+    InfoVO lineDelete(OrderLineIdReqVO orderLineIdReqVO); // 订单行删除接口
+    InfoVO shipmentDelete(ShipmentIdReqVO shipmentIdReqVO); // 订单发货行删除接口
     InfoVO orderClose(OrderIdReqVO orderIdReqVO); // 订单关闭接口
     InfoVO orderCancel(OrderIdReqVO orderIdReqVO); // 订单取消接口
 }

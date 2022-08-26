@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping(produces = "application/json")
 public class Controller {
@@ -146,28 +144,16 @@ public class Controller {
         return applicationService.orderDetail(orderIdReqVO);
     }
 
-//    /**
-//     * 订单头行保存接口，订单头行一起保存
-//     *
-//     * @param orderSaveReqVO
-//     * @return
-//     */
-//    @PostMapping("/order/save")
-//    public InfoVO orderSave(@Validated @RequestBody OrderSaveReqVO orderSaveReqVO) throws Exception {
-//        return applicationService.orderSave(orderSaveReqVO);
-//    }
-
     /**
-     * 订单发货行保存接口
+     * 订单头行保存接口，订单头行一起保存
      *
-     * @param shipmentSaveReqVO
+     * @param orderSaveReqVO
      * @return
      */
-    @PostMapping("/order/shipment/save")
-    public InfoVO shipmentSave(@RequestBody ShipmentSaveReqVO shipmentSaveReqVO) {
-        return applicationService.shipmentSave(shipmentSaveReqVO);
+    @PostMapping("/order/save")
+    public InfoVO orderSave(@Validated @RequestBody OrderSaveReqVO orderSaveReqVO) throws Exception {
+        return applicationService.orderSave(orderSaveReqVO);
     }
-
     /**
      * 某个订单行下的发货行查询接口
      *
@@ -177,6 +163,16 @@ public class Controller {
     @PostMapping("/order/shipment/list")
     public ShipmentListResVO shipmentList(@Validated @RequestBody ShipmentLineIdReqVO shipmentListReqVO) {
         return shipmentService.shipmentList(shipmentListReqVO);
+    }
+    /**
+     * 订单发货行保存接口
+     *
+     * @param shipmentSaveReqVO
+     * @return
+     */
+    @PostMapping("/order/shipment/save")
+    public InfoVO shipmentSave(@RequestBody ShipmentSaveReqVO shipmentSaveReqVO) {
+        return applicationService.shipmentSave(shipmentSaveReqVO);
     }
 
     /**
@@ -197,19 +193,19 @@ public class Controller {
      * @return
      */
     @PostMapping("/order/shipment/confirm")
-    public InfoVO confirm(@RequestBody ShipmentIdReqVO shipmentIdReqVO) {
-        return shipmentService.shipmentConfirm(shipmentIdReqVO);
+    public InfoVO confirm(@Validated @RequestBody ShipmentIdReqVO shipmentIdReqVO) {
+        return applicationService.shipmentConfirm(shipmentIdReqVO);
     }
 
     /**
      * 订单行删除接口
      *
-     * @param shipmentLineIdReqVO
+     * @param orderLineIdReqVO
      * @return
      */
     @DeleteMapping("/order/line/delete")
-    public InfoVO delete(@Validated @RequestBody ShipmentLineIdReqVO shipmentLineIdReqVO) {
-        return applicationService.lineDelete(shipmentLineIdReqVO);
+    public InfoVO delete(@Validated @RequestBody OrderLineIdReqVO orderLineIdReqVO) {
+        return applicationService.lineDelete(orderLineIdReqVO);
     }
 
     /**
@@ -219,8 +215,8 @@ public class Controller {
      * @return
      */
     @DeleteMapping("/order/shipment/delete")
-    public InfoVO shipmentDelete(@RequestBody ShipmentIdReqVO shipmentIdReqVO) {
-        return shipmentService.shipmentDelete(shipmentIdReqVO);
+    public InfoVO shipmentDelete(@Validated @RequestBody ShipmentIdReqVO shipmentIdReqVO) {
+        return applicationService.shipmentDelete(shipmentIdReqVO);
     }
 
     /**
@@ -229,7 +225,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/order/close")
-    public InfoVO orderClose(@RequestBody OrderIdReqVO orderIdReqVO){
+    public InfoVO orderClose(@Validated @RequestBody OrderIdReqVO orderIdReqVO){
         return applicationService.orderClose(orderIdReqVO);
     }
 
@@ -239,7 +235,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/order/cancel")
-    public InfoVO orderCancel(@RequestBody OrderIdReqVO orderIdReqVO){
+    public InfoVO orderCancel(@Validated @RequestBody OrderIdReqVO orderIdReqVO){
         return applicationService.orderCancel(orderIdReqVO);
     }
 }

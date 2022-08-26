@@ -1,157 +1,144 @@
-create database homework;
-use homework;
-set @@foreign_key_checks=OFF;
-set sql_safe_updates=0;
-create table Customer(
-customer_id int primary key not null auto_increment comment'客户id',
-customer_number varchar(50) not null comment'客户编码',
-customer_name varchar(50) not null comment'客户名称',
-customer_type varchar(30) default'暂无' comment'客户类型',
-email varchar(300) default'暂无' comment'邮箱',
-status varchar(50) not null default'有效' comment'客户状态'
-)comment'客户信息表';
+CREATE DATABASE  IF NOT EXISTS `homework` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `homework`;
+-- MySQL dump 10.13  Distrib 8.0.29, for Win64 (x86_64)
+--
+-- Host: 127.0.0.1    Database: homework
+-- ------------------------------------------------------
+-- Server version	8.0.29
 
-drop table if exists customerlocation;
-create table CustomerLocation(
-location_id int primary key not null auto_increment comment'地点id',
-customer_id int not null comment'客户id',
-address varchar(200) not null comment'客户收货地址',
-phone varchar(20) not null comment'客户收货电话',
-foreign key(customer_id) references Customer(customer_id)
-)comment'客户地点表';
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-drop table if exists item;
-create table Item(
-item_id int primary key not null auto_increment comment'商品id',
-item_name varchar(300) not null comment'商品名称',
-uom varchar(10) not null comment'单位',
-price decimal(10,4) comment'参考单价',
-status varchar(50) not null comment'商品状态'
-)comment'商品信息表';
+--
+-- Table structure for table `customer`
+--
 
-drop table if exists orderheader;
-create table OrderHeader(
-order_id int primary key not null auto_increment comment'订单头id',
-order_number varchar(50) not null comment'订单编号',
-customer_id int not null comment'客户id',
-order_date datetime not null comment'下单日期',
-status varchar(50) not null default '登记' comment'订单状态',
-foreign key(customer_id) references Customer(customer_id)
-)comment'订单头表';
-drop table if exists orderline;
-create table OrderLine(
-line_id int primary key not null auto_increment comment'订单行id',
-order_id int not null comment'订单头id',
-item_id int not null comment'商品id',
-price decimal(10,4) not null comment'单价',
-quantity decimal(10,4) not null comment'行数量',
-foreign key(order_id) references OrderHeader(order_id),
-foreign key(item_id) references Item(item_id)
-)comment'订单行表';
+DROP TABLE IF EXISTS `customer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `customer` (
+  `customer_id` int NOT NULL AUTO_INCREMENT COMMENT '客户id',
+  `customer_number` varchar(50) NOT NULL COMMENT '客户编码',
+  `customer_name` varchar(50) NOT NULL COMMENT '客户名称',
+  `customer_type` varchar(30) DEFAULT '暂无' COMMENT '客户类型',
+  `email` varchar(300) DEFAULT '暂无' COMMENT '邮箱',
+  `status` varchar(50) NOT NULL DEFAULT '有效' COMMENT '客户状态',
+  PRIMARY KEY (`customer_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10000012 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='客户信息表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-drop table if exists shipment;
-create table Shipment(
-shipment_id int primary key not null auto_increment comment'订单发货行id',
-line_id int not null comment'订单行id',
-address varchar(200) not null comment'客户收货地址',
-phone varchar(20) not null comment'客户收货电话',
-estimated_shipment_date datetime not null comment'预计发货日期',
-actual_shipment_date datetime default null comment's实际发货日期',
-quantity decimal(10,4) not null comment'发货行数量',
-status varchar(50) not null DEFAULT '待发货' comment'发货状态',
-foreign key(line_id) references OrderLine(line_id)
-)comment'订单发货行表';
+--
+-- Table structure for table `customerlocation`
+--
 
+DROP TABLE IF EXISTS `customerlocation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `customerlocation` (
+  `location_id` int NOT NULL AUTO_INCREMENT COMMENT '地点id',
+  `customer_id` int NOT NULL COMMENT '客户id',
+  `address` varchar(20) NOT NULL COMMENT '客户收货地址',
+  `phone` varchar(20) NOT NULL COMMENT '客户收货电话',
+  PRIMARY KEY (`location_id`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `customerlocation_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1129 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='客户地点表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-insert into customer values
-(10000001,'c001','华为','企业','1234@huawei.com','有效'),
-(customer_id,'c002','小米','企业','1234@xiaomi.com','有效'),
-(customer_id,'c003','苹果','企业','1234@apple.com','有效'),
-(customer_id,'c004','联想','企业','1234@lenovo.com','有效'),
-(customer_id,'c005','戴尔','企业','1234@dell.com','有效'),
-(customer_id,'c006','库克','个人','TimothyDonaldCook@apple.com','有效'),
-(customer_id,'c007','乔布斯','个人','SteveJobs@apple.com','有效'),
-(customer_id,'c008','任正非','个人','Zhengfei.Ren@huawei.com','有效'),
-(customer_id,'c009','雷军',customer_type,'Jun.Lei@xiaomi.con','有效'),
-(customer_id,'c0010','李宇航','个人',email,'有效');
+--
+-- Table structure for table `item`
+--
 
+DROP TABLE IF EXISTS `item`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `item` (
+  `item_id` int NOT NULL AUTO_INCREMENT COMMENT '商品id',
+  `item_name` varchar(300) NOT NULL COMMENT '商品名称',
+  `uom` varchar(10) NOT NULL COMMENT '单位',
+  `price` decimal(10,4) DEFAULT NULL COMMENT '参考单价',
+  `status` varchar(50) NOT NULL DEFAULT '有效' COMMENT '商品状态',
+  PRIMARY KEY (`item_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1014 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品信息表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-insert into customerlocation values
-(1111,10000001,'华为1','11111'),
-(location_id,10000001,'华为2','11112'),
-(location_id,10000002,'小米1','11113'),
-(location_id,10000002,'小米2','11114'),
-(location_id,10000003,'苹果1','11115'),
-(location_id,10000003,'苹果2','11116'),
-(location_id,10000004,'联想1','11117'),
-(location_id,10000004,'联想2','11118'),
-(location_id,10000005,'戴尔1','11119'),
-(location_id,10000005,'戴尔2','11120'),
-(location_id,10000006,'苹果3','11121'),
-(location_id,10000007,'苹果4','11122'),
-(location_id,10000008,'华为3','11123'),
-(location_id,10000009,'小米3','11124'),
-(location_id,10000010,'深圳','11125');
+--
+-- Table structure for table `orderheader`
+--
 
+DROP TABLE IF EXISTS `orderheader`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `orderheader` (
+  `order_id` int NOT NULL AUTO_INCREMENT COMMENT '订单头id',
+  `order_number` varchar(50) NOT NULL COMMENT '订单编号',
+  `customer_id` int NOT NULL COMMENT '客户id',
+  `order_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '下单日期',
+  `status` varchar(50) NOT NULL DEFAULT '登记' COMMENT '订单状态',
+  PRIMARY KEY (`order_id`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `orderheader_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1100031 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单头表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-insert into Item values
-(1001,'德芙巧克力','条',8,'有效'),
-(item_id,'士力架','件',100987.1234,'有效'),
-(item_id,'可口可乐','件',565435.4325,'有效'),
-(item_id,'百事可乐','件',567435,'有效'),
-(item_id,'农夫山泉矿泉水','箱',667.99,'有效'),
-(item_id,'怡宝饮用水','箱',100000.9999,'有效'),
-(item_id,'崂山汽水','瓶',null,'已下架'),
-(item_id,'蒙牛纯牛奶','箱',50,'有效'),
-(item_id,'特仑苏牛奶','箱',null,'有效'),
-(item_id,'好丽友薯片','件',12389.7563,'有效');
+--
+-- Table structure for table `orderline`
+--
 
+DROP TABLE IF EXISTS `orderline`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `orderline` (
+  `line_id` int NOT NULL AUTO_INCREMENT COMMENT '订单行id',
+  `order_id` int NOT NULL COMMENT '订单头id',
+  `item_id` int NOT NULL COMMENT '商品id',
+  `price` decimal(10,4) NOT NULL COMMENT '单价',
+  `quantity` decimal(10,4) NOT NULL COMMENT '行数量',
+  PRIMARY KEY (`line_id`),
+  KEY `order_id` (`order_id`),
+  KEY `item_id` (`item_id`),
+  CONSTRAINT `orderline_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orderheader` (`order_id`),
+  CONSTRAINT `orderline_ibfk_2` FOREIGN KEY (`item_id`) REFERENCES `item` (`item_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=500019 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单行表';
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-insert into orderheader values
-(1100001,'SO2022081111111',10000003,'2022-08-11 10:00:05','登记'),
-(order_id,'SO2022081111112',10000003,'2022-08-11 09:00:13','登记'),
-(order_id,'SO2022081111113',10000003,'2022-08-11 09:00:24','登记'),
-(order_id,'SO2022081111114',10000003,'2022-08-11 09:00:36','登记'),
-(order_id,'SO2022081111115',10000005,'2022-08-10 09:00:47','待发货'),
-(order_id,'SO2022081111116',10000005,'2022-08-10 09:02:01','待发货'),
-(order_id,'SO2022081111117',10000008,'2022-08-10 17:00:05','待发货'),
-(order_id,'SO2022081111118',10000001,'2022-08-10 11:05:05','发货中'),
-(order_id,'SO2022081111119',10000001,'2022-08-10 09:00:05','完成'),
-(order_id,'SO2022081111120',10000001,'2022-08-10 09:00:05','取消');
+--
+-- Table structure for table `shipment`
+--
 
+DROP TABLE IF EXISTS `shipment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shipment` (
+  `shipment_id` int NOT NULL AUTO_INCREMENT COMMENT '订单发货行id',
+  `line_id` int NOT NULL COMMENT '订单行id',
+  `address` varchar(200) NOT NULL COMMENT '客户收货地址',
+  `phone` varchar(20) NOT NULL COMMENT '客户收货电话',
+  `estimated_shipment_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '预计发货日期',
+  `actual_shipment_date` datetime DEFAULT NULL COMMENT 's实际发货日期',
+  `quantity` decimal(10,4) NOT NULL COMMENT '发货行数量',
+  `status` varchar(50) NOT NULL DEFAULT '待发货' COMMENT '发货状态',
+  PRIMARY KEY (`shipment_id`),
+  KEY `line_id` (`line_id`),
+  CONSTRAINT `shipment_ibfk_1` FOREIGN KEY (`line_id`) REFERENCES `orderline` (`line_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5100015 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单发货行表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-insert into orderline values
-(500001,1100001,1001,7,20000),
-(line_id,1100001,1002,100900,15000),
-(line_id,1100001,1003,565499,3000),
-(line_id,1100002,1002,100900,200),
-(line_id,1100002,1003,565400,500),
-(line_id,1100002,1004,560000,600),
-(line_id,1100003,1001,7.5,2000),
-(line_id,1100003,1002,100500,8000),
-(line_id,1100004,1005,600,7500),
-(line_id,1100004,1006,100000,660000);
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-
-insert into shipment values
-(5100001,500001,'苹果1','11115','2022-08-15 10:04:03','2022-08-15 10:04:03',16000,status),
-(shipment_id,500001,'苹果2','11116','2022-08-15 10:04:12','2022-08-15 10:06:12',4000,status),
-(shipment_id,500002,'苹果2','11116','2022-08-15 10:04:15','2022-08-15 10:13:15',5000,status),
-(shipment_id,500002,'苹果1','11115','2022-08-15 10:04:21','2022-08-16 10:24:21',5000,status),
-(shipment_id,500002,'苹果2','11116','2022-08-15 10:04:25','2022-08-16 10:54:25',5000,status),
-(shipment_id,500003,'苹果1','11115','2022-08-15 10:04:29','2022-08-16 11:04:29',3000,status),
-(shipment_id,500004,'苹果2','11116','2022-08-15 10:04:33','2022-08-16 11:33:33',200,status),
-(shipment_id,500005,'苹果2','11116','2022-08-15 10:04:37',actual_shipment_date,500,status),
-(shipment_id,500006,'苹果2','11116','2022-08-15 10:04:46',actual_shipment_date,600,status),
-(shipment_id,500007,'苹果1','11115','2022-08-15 10:04:54',actual_shipment_date,100,status);
-
-
-select customer_name,order_number,order_date,group_concat(item_name) as item_name,sum(orderline.price*orderline.quantity) as total_price,orderheader.status 
-from orderheader
-inner join orderline on orderheader.order_id=orderline.order_id
-inner join item on orderline.item_id=item.item_id
-inner join customer on orderheader.customer_id=customer.customer_id
-where customer.customer_name like '%苹%'
-and order_number like '%' 
-and order_date >= '2022-08-10 09:00:05' and order_date <= '2022-08-11 10:00:05'
-group by order_number;
+-- Dump completed on 2022-08-26 16:10:41
