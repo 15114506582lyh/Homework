@@ -18,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 
 
 import java.sql.Wrapper;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,28 +28,28 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
 
     /**
      * 商品信息列表查询，支持分页查询
+     *
      * @param itemListReqVO
      * @return
      */
     @Override
-    public ItemListResVO itemList(ItemListReqVO itemListReqVO) {
+    public ItemListResVO itemList(ItemListReqVO itemListReqVO) throws Exception {
         LambdaQueryWrapper<Item> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper = queryWrapper.like(StringUtil.isNotEmpty(itemListReqVO.getItemName()), Item::getItemName, itemListReqVO.getItemName());
         queryWrapper = queryWrapper.eq(StringUtil.isNotEmpty(itemListReqVO.getStatus()), Item::getStatus, itemListReqVO.getStatus());
         Page<Item> page = PageHelper.startPage(itemListReqVO.getPage(), itemListReqVO.getPageSize());
-        List<Item> list = itemService.list(queryWrapper);
         // 处理分页返回结果
         ItemListResVO response = new ItemListResVO();
-        if (!CollectionUtils.isEmpty(list)) {
-            response.setInfo("查找成功");
+        try {
+            List<Item> list = itemService.list(queryWrapper);
             //返回查询总条数
             response.setTotal(page.getTotal());
             //返回总页数
             response.setTotalPages(page.getPages());
             //返回查询结果
             response.setRows(list);
-        }else {
-            response.setInfo("找不到符合条件的商品");
+        } catch (Exception exception) {
+            throw new Exception("找不到符合条件的商品");
         }
         return response;
     }
@@ -60,15 +61,14 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
      * @return
      */
     @Override
-    public Item itemDetail(ItemIdReqVO itemIdReqVO) {
-        Item item = itemService.getById(itemIdReqVO.getItemId());
-        if (ObjectUtils.isNotEmpty(item)) {
-            return getById(itemIdReqVO.getItemId());
-        }else {
-            Item item1 = new Item();
-            item1.setItemId(itemIdReqVO.getItemId());
-            item1.setStatus("找不到此商品");
-            return item1;
+    public ItemResVO itemDetail(ItemIdReqVO itemIdReqVO) throws Exception {
+        ItemResVO itemResVO = new ItemResVO();
+        try {
+            Item item = itemService.getById(itemIdReqVO.getItemId());
+            BeanUtils.copyProperties(item, itemResVO);
+            return itemResVO;
+        } catch (Exception exception) {
+            throw new Exception("找不到商品id为" + itemIdReqVO.getItemId() + "的商品");
         }
     }
 
@@ -79,16 +79,17 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
      * @return
      */
     @Override
-    public InfoVO itemCreate(ItemCreateReqVO itemCreateReqVO) {
+    public InfoVO itemCreate(ItemCreateReqVO itemCreateReqVO) throws Exception {
         InfoVO infoVO = new InfoVO();
         Item item = new Item();
         BeanUtils.copyProperties(itemCreateReqVO, item);
-        if (save(item)) {
+        try {
+            save(item);
             infoVO.setInfo("添加成功");
-        }else {
-            infoVO.setInfo("添加失败");
+            return infoVO;
+        } catch (Exception exception) {
+            throw new Exception("添加失败");
         }
-        return infoVO;
     }
 
     /**
@@ -98,15 +99,16 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
      * @return
      */
     @Override
-    public InfoVO itemUpdate(Item item) {
+    public InfoVO itemUpdate(Item item) throws Exception {
         InfoVO infoVO = new InfoVO();
-        if (ObjectUtils.isNotEmpty(itemService.getById(item.getItemId()))) {
+        try {
+            itemService.getById(item.getItemId());
             updateById(item);
             infoVO.setInfo("更新成功");
-        }else {
-            infoVO.setInfo("商品不存在，更新失败");
+            return infoVO;
+        } catch (Exception exception) {
+            throw new Exception("商品不存在，更新失败");
         }
-        return infoVO;
     }
 
     /**
@@ -116,20 +118,20 @@ public class ItemServiceImpl extends ServiceImpl<ItemMapper, Item> implements It
      * @return
      */
     @Override
-    public InfoVO itemDisable(ItemIdReqVO itemIdReqVO) {
+    public InfoVO itemDisable(ItemIdReqVO itemIdReqVO) throws Exception {
         InfoVO infoVO = new InfoVO();
-        Item item = itemService.getById(itemIdReqVO.getItemId());
-        if (ObjectUtils.isNotEmpty(item)){
-            if (("有效").equals(item.getStatus())){
-                item.setStatus("已下架");
-                updateById(item);
-                infoVO.setInfo("操作成功");
-            }else {
+        try {
+            Item item = itemService.getById(itemIdReqVO.getItemId());
+            if (!("有效").equals(item.getStatus())) {
                 infoVO.setInfo("该商品不允许下架，操作失败");
+                return infoVO;
             }
-        }else {
-            infoVO.setInfo("找不到此商品，操作失败");
+            item.setStatus("已下架");
+            updateById(item);
+            return infoVO;
+        } catch (Exception exception) {
+            throw new Exception("找不到商品id为" + itemIdReqVO.getItemId() + "的商品，操作失败");
         }
-        return infoVO;
+
     }
 }

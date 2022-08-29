@@ -6,6 +6,5 @@ import java.util.List;
 
 @Data
 public class OrderDetailResVO extends OrderHeaderSupport {
-    private String info;
     List<OrderLineDTO> lines;
 }

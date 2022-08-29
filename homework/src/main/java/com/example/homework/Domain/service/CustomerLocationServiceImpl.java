@@ -38,19 +38,17 @@ public class CustomerLocationServiceImpl extends ServiceImpl<CustomerLocationMap
      * @return
      */
     @Override
-    public InfoVO locationDelete(LocationIdReqVO locationIdReqVO) {
+    public InfoVO locationDelete(LocationIdReqVO locationIdReqVO) throws Exception {
         InfoVO infoVO = new InfoVO();
-        if (removeById(locationIdReqVO.getLocationId())) {
+        try{
+            CustomerLocation customerLocation = customerLocationService.getById(locationIdReqVO.getLocationId());
+            customerLocationService.removeById(customerLocation.getCustomerId());
             infoVO.setInfo("删除成功");
-        } else
-            infoVO.setInfo("删除失败");
-        return infoVO;
+            return infoVO;
+        }catch (Exception exception) {
+            throw new Exception("删除失败");
+        }
     }
-
-
-
-//
-
     /**
      * 客户地点选择器，查询单个客户下面的收货地点
      * @param customerIdReqVO
@@ -58,23 +56,22 @@ public class CustomerLocationServiceImpl extends ServiceImpl<CustomerLocationMap
      */
 
     @Override
-    public LocationSelectorResVO select(CustomerIdReqVO customerIdReqVO) {
+    public LocationSelectorResVO select(CustomerIdReqVO customerIdReqVO) throws Exception {
         LambdaQueryWrapper wrapper = Wrappers.lambdaQuery(CustomerLocation.class).
                 eq(ObjectUtils.isNotEmpty(customerIdReqVO.getCustomerId()),CustomerLocation::getCustomerId,customerIdReqVO.getCustomerId());
-        List<CustomerLocation> list = customerLocationService.list(wrapper);
-        List<LocationSelectorDTO> locationSelectorDTOS = new ArrayList<>();
-        LocationSelectorResVO locationSelectorResVO = new LocationSelectorResVO();
-        if (ObjectUtils.isNotEmpty(list)) {
+        try {
+            List<CustomerLocation> list = customerLocationService.list(wrapper);
+            List<LocationSelectorDTO> locationSelectorDTOS = new ArrayList<>();
+            LocationSelectorResVO locationSelectorResVO = new LocationSelectorResVO();
             LocationSelectorDTO locationSelectorDTO = new LocationSelectorDTO();
             for (CustomerLocation customerLocation : list) {
                 BeanUtils.copyProperties(customerLocation, locationSelectorDTO);
                 locationSelectorDTOS.add(locationSelectorDTO);
             }
             locationSelectorResVO.setLocations(locationSelectorDTOS);
-            locationSelectorResVO.setInfo("查找成功");
-        }else {
-            locationSelectorResVO.setInfo("找不到该顾客");
+            return locationSelectorResVO;
+        }catch (Exception exception){
+            throw new Exception("找不到该客户的地点信息");
         }
-        return locationSelectorResVO;
     }
 }

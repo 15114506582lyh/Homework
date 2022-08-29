@@ -10,6 +10,6 @@ import com.example.homework.Domain.vo.LocationSelectorResVO;
 import java.util.List;
 
 public interface CustomerLocationService extends IService<CustomerLocation> {
-    InfoVO locationDelete(LocationIdReqVO locationIdReqVO); // 删除客户收货地点
-    LocationSelectorResVO select(CustomerIdReqVO customerIdReqVO); // 客户地点选择器，查询单个客户下面的收货地点
+    InfoVO locationDelete(LocationIdReqVO locationIdReqVO) throws Exception ; // 删除客户收货地点
+    LocationSelectorResVO select(CustomerIdReqVO customerIdReqVO) throws Exception ; // 客户地点选择器，查询单个客户下面的收货地点
 }

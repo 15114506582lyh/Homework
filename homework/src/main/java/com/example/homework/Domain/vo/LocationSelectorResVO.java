@@ -7,6 +7,5 @@ import java.util.List;
 
 @Data
 public class LocationSelectorResVO {
-    private String info;
     private List<LocationSelectorDTO> locations;
 }

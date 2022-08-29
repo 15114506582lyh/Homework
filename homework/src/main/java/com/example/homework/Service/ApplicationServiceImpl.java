@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.homework.DAO.OrderHeaderMapper;
 import com.example.homework.Domain.dto.CustomerDetailDTO;
-import com.example.homework.Domain.dto.OrderHeaderDTO;
 import com.example.homework.Domain.dto.OrderLineDTO;
 import com.example.homework.Domain.dto.OrderListDTO;
 import com.example.homework.Domain.entity.*;
@@ -26,7 +25,6 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,7 +53,7 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     @Override
-    public CustomerListResVO customerList(CustomerListReqVO customerListReqVO) {
+    public CustomerListResVO customerList(CustomerListReqVO customerListReqVO) throws Exception {
         LambdaQueryWrapper<Customer> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(StringUtil.isNotEmpty(customerListReqVO.getCustomerNumber()), Customer::getCustomerNumber, customerListReqVO.getCustomerNumber());
         queryWrapper.like(StringUtil.isNotEmpty(customerListReqVO.getCustomerName()), Customer::getCustomerName, customerListReqVO.getCustomerName());
@@ -63,16 +61,17 @@ public class ApplicationServiceImpl implements ApplicationService {
         Page<Customer> page = PageHelper.startPage(customerListReqVO.getPage(), customerListReqVO.getPageSize());
         List<Customer> list = customerService.list(queryWrapper);
         CustomerListResVO response = new CustomerListResVO();
-        if (!CollectionUtils.isEmpty(list)) {
-            response.setInfo("查找成功");
-            //返回查询总条数
-            response.setTotal(page.getTotal());
-            //返回总页数
-            response.setTotalPages(page.getPages());
-            //返回查询结果
-            response.setRows(list);
-        } else {
-            response.setInfo("找不到该客户的信息");
+        try {
+            if (!CollectionUtils.isEmpty(list)) {
+                //返回查询总条数
+                response.setTotal(page.getTotal());
+                //返回总页数
+                response.setTotalPages(page.getPages());
+                //返回查询结果
+                response.setRows(list);
+            }
+        } catch (Exception exception) {
+            throw new Exception("找不到该客户的信息");
         }
         return response;
     }
@@ -84,30 +83,29 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     @Override
-    public CustomerDetailResVO customerDetail(CustomerIdReqVO customerIdReqVO) {
-        Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
+    public CustomerDetailResVO customerDetail(CustomerIdReqVO customerIdReqVO) throws Exception {
         CustomerDetailResVO detail = new CustomerDetailResVO();
-        if (ObjectUtils.isNotEmpty(customer)) {
+        try {
+            Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
             BeanUtils.copyProperties(customer, detail);
             LambdaQueryWrapper<CustomerLocation> queryWrapper = Wrappers.lambdaQuery(CustomerLocation.class)
-                    .eq(CustomerLocation::getCustomerId, customerIdReqVO.getCustomerId());
-            List<CustomerLocation> list = customerLocationService.list(queryWrapper);
-            List<CustomerDetailDTO> customerDetailDTOList = new ArrayList<>();
-            CustomerDetailDTO customerDetailDTO = new CustomerDetailDTO();
-            for (CustomerLocation customerLocation : list) {
-                BeanUtils.copyProperties(customerLocation, customerDetailDTO);
-                customerDetailDTOList.add(customerDetailDTO);
-            }
-            if (!CollectionUtils.isEmpty(customerDetailDTOList)) {
+                    .eq(CustomerLocation::getCustomerId, customer.getCustomerId());
+            try {
+                List<CustomerLocation> list = customerLocationService.list(queryWrapper);
+                List<CustomerDetailDTO> customerDetailDTOList = new ArrayList<>();
+                CustomerDetailDTO customerDetailDTO = new CustomerDetailDTO();
+                for (CustomerLocation customerLocation : list) {
+                    BeanUtils.copyProperties(customerLocation, customerDetailDTO);
+                    customerDetailDTOList.add(customerDetailDTO);
+                }
                 detail.setLocations(customerDetailDTOList);
-            } else {
-                detail.setStatus("该客户目前无地址");
+            } catch (Exception exception) {
+                throw new Exception("客户" + customer.getCustomerId() + "暂时没有地点信息");
             }
-        } else {
-            detail.setCustomerId(customerIdReqVO.getCustomerId());
-            detail.setStatus("找不到该客户");
+            return detail;
+        } catch (Exception exception) {
+            throw new Exception("客户" + customerIdReqVO.getCustomerId() + "不在客户名单里");
         }
-        return detail;
     }
 
     /**
@@ -148,22 +146,24 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     @Override
-    public InfoVO disable(CustomerIdReqVO customerIdReqVO) {
+    public InfoVO disable(CustomerIdReqVO customerIdReqVO) throws Exception {
         InfoVO infoVO = new InfoVO();
-        Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
-        if (ObjectUtils.isEmpty(customer)) {
-            infoVO.setInfo("该用户不存在");
-            return infoVO;
+        try {
+            Customer customer = customerService.getById(customerIdReqVO.getCustomerId());
+            if (!("有效").equals(customer.getStatus())) {
+                infoVO.setInfo("用户" + customer.getCustomerId() + "的状态为：" + customer.getStatus() + "，不能失效");
+                return infoVO;
+            }
+            LambdaQueryWrapper<OrderHeader> wrapper = Wrappers.lambdaQuery(OrderHeader.class).
+                    eq(ObjectUtils.isNotEmpty(customer.getCustomerId()), OrderHeader::getCustomerId, customer.getCustomerId());
+            List<OrderHeader> orderHeaders = orderHeaderService.list(wrapper);
+            List<String> orderStatusList = orderHeaders.stream().map(OrderHeader::getStatus).distinct().collect(Collectors.toList());
+            System.out.println(orderStatusList.toString());
+        } catch (Exception exception) {
+            throw new Exception("客户id" + customerIdReqVO.getCustomerId() + "不存在");
         }
-        if (!("有效").equals(customer.getStatus())) {
-            infoVO.setInfo("用户" + customer.getCustomerId() + "的状态为：" + customer.getStatus() + "，不能失效");
-            return infoVO;
-        }
-        LambdaQueryWrapper<OrderHeader> wrapper = Wrappers.lambdaQuery(OrderHeader.class).
-                eq(ObjectUtils.isNotEmpty(customer.getCustomerId()), OrderHeader::getCustomerId, customer.getCustomerId());
-        List<OrderHeader> orderHeaders = orderHeaderService.list(wrapper);
-        List<String> orderStatusList = orderHeaders.stream().map(OrderHeader::getStatus).distinct().collect(Collectors.toList());
-        System.out.println(orderStatusList.toString());
+
+
 //        if (ObjectUtils.isNotEmpty(orderHeaders)) {
 //            for (OrderHeader orderHeader : orderHeaders) {
 //                if (!("完成").equals(orderHeader.getStatus()) || !("取消").equals(orderHeader.getStatus())) {
@@ -172,7 +172,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 //                }
 //            }
 //        }
-        customer.setStatus("失效");
+//        customer.setStatus("失效");
         return infoVO;
     }
 
@@ -183,18 +183,17 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     @Override
-    public OrderListResVO orderList(OrderListReqVO orderListReqVO) {
+    public OrderListResVO orderList(OrderListReqVO orderListReqVO) throws Exception {
         Page<OrderListDTO> page = PageHelper.startPage(orderListReqVO.getPage(), orderListReqVO.getPageSize());
         List<OrderListDTO> list = orderHeaderMapper.orderList(orderListReqVO);
         OrderListResVO response = new OrderListResVO();
-        if (!CollectionUtils.isEmpty(list)) {
-            response.setInfo("查找成功");
-            response.setTotal(page.getTotal());
-            response.setTotalPages(page.getPages());
-            response.setRows(list);
-        } else {
-            response.setInfo("找不到符合条件的订单");
+        if (CollectionUtils.isEmpty(list)) {
+            throw new Exception("找不到符合条件的订单");
         }
+        response.setInfo("查找成功");
+        response.setTotal(page.getTotal());
+        response.setTotalPages(page.getPages());
+        response.setRows(list);
         return response;
     }
 
@@ -208,13 +207,13 @@ public class ApplicationServiceImpl implements ApplicationService {
      * @return
      */
     @Override
-    public OrderDetailResVO orderDetail(OrderIdReqVO orderIdReqVO) {
-        OrderHeader orderHeader = orderHeaderService.getById(orderIdReqVO.getOrderId());
+    public OrderDetailResVO orderDetail(OrderIdReqVO orderIdReqVO) throws Exception {
         OrderDetailResVO orderDetailResVO = new OrderDetailResVO();
-        if (ObjectUtils.isNotEmpty(orderHeader)) {
+        try {
             /**
              * 处理订单头信息
              */
+            OrderHeader orderHeader = orderHeaderService.getById(orderIdReqVO.getOrderId());
             Customer customer = customerService.getById(orderHeader.getCustomerId());
             BeanUtils.copyProperties(orderHeader, orderDetailResVO);
             orderDetailResVO.setCustomerName(customer.getCustomerName());
@@ -224,31 +223,30 @@ public class ApplicationServiceImpl implements ApplicationService {
             LambdaQueryWrapper wrapper = Wrappers.lambdaQuery(OrderLine.class).
                     eq(ObjectUtils.isNotEmpty(orderHeader.getOrderId()), OrderLine::getOrderId, orderHeader.getOrderId());
             List<OrderLine> list = orderLineService.list(wrapper);
-            if (ObjectUtils.isNotEmpty(list)) {
-                List<OrderLineDTO> orderLineDTOS = new ArrayList<>();
-                for (OrderLine orderLine : list) {
-                    OrderLineDTO orderLineDTO = new OrderLineDTO();
-                    BeanUtils.copyProperties(orderLine, orderLineDTO);
-                    orderLineDTOS.add(orderLineDTO);
-                }
-                orderDetailResVO.setLines(orderLineDTOS);
-                orderDetailResVO.setInfo("查找成功");
-            } else {
-                orderDetailResVO.setInfo("该订单暂时没有订单行信息");
+            if (ObjectUtils.isEmpty(list)) {
+                throw new Exception("该订单暂时没有订单行信息");
             }
-        } else {
-            orderDetailResVO.setInfo("暂时没有订单头信息");
+            List<OrderLineDTO> orderLineDTOS = new ArrayList<>();
+            for (OrderLine orderLine : list) {
+                OrderLineDTO orderLineDTO = new OrderLineDTO();
+                BeanUtils.copyProperties(orderLine, orderLineDTO);
+                orderLineDTOS.add(orderLineDTO);
+            }
+            orderDetailResVO.setLines(orderLineDTOS);
+            return orderDetailResVO;
+        } catch (Exception exception) {
+            throw new Exception("暂时没有订单头信息");
         }
-        return orderDetailResVO;
     }
 
     /**
      * 订单头行保存接口，订单头行一起保存
      * 头校验
+     *
      * @param orderSaveReqVO
      * @return
      */
-    public boolean headerCheck(OrderSaveReqVO orderSaveReqVO, InfoVO infoVO) {
+    public boolean headerCheck(OrderSaveReqVO orderSaveReqVO, InfoVO infoVO){
         if (ObjectUtils.isNotEmpty(orderSaveReqVO.getOrderId()) && ObjectUtils.isNotEmpty(orderSaveReqVO.getOrderNumber())) {
             OrderHeader orderHeader = orderHeaderService.getById(orderSaveReqVO.getOrderId());
             if (ObjectUtils.isEmpty(orderHeader)) {
@@ -274,16 +272,17 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     /**
      * 订单头行保存接口，订单头行一起保存
-     *行校验
+     * 行校验
+     *
      * @param orderSaveReqVO
      * @param infoVO
      * @return
      */
-    public boolean lineCheck(OrderSaveReqVO orderSaveReqVO, InfoVO infoVO){
-        if (ObjectUtils.isNotEmpty(orderSaveReqVO.getLines())){
-            for (OrderLineDTO orderLineDTO : orderSaveReqVO.getLines()){
+    public boolean lineCheck(OrderSaveReqVO orderSaveReqVO, InfoVO infoVO) {
+        if (ObjectUtils.isNotEmpty(orderSaveReqVO.getLines())) {
+            for (OrderLineDTO orderLineDTO : orderSaveReqVO.getLines()) {
                 Item item = itemService.getById(orderLineDTO.getItemId());
-                if (ObjectUtils.isEmpty(item)){
+                if (ObjectUtils.isEmpty(item)) {
                     infoVO.setInfo("无效的商品信息");
                     return false;
                 }
@@ -291,6 +290,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         return true;
     }
+
     public String createOrderNumber(String key) {
         //加上时间戳 如果不需要
         String datetime = new SimpleDateFormat("yyyyMMdd").format(new Date());
@@ -299,12 +299,13 @@ public class ApplicationServiceImpl implements ApplicationService {
         //这里是 5 位id，如果位数不够可以自行修改 ，下面的意思是 得到上面 key 的 值，位数为 5 ，不够	的话在左边补 0 ，比如  110 会变成  0110
         String value = StringUtils.leftPad(String.valueOf(autoID), 5, "0");
         //然后把 时间戳和优化后的 ID 拼接
-        String code = MessageFormat.format("{0}{1}",  key + datetime,value);
+        String code = MessageFormat.format("{0}{1}", key + datetime, value);
         return code;
     }
 
     /**
-     *订单头行保存接口，订单头行一起保存
+     * 订单头行保存接口，订单头行一起保存
+     *
      * @param orderSaveReqVO
      * @return
      */
@@ -312,18 +313,18 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Transactional(rollbackFor = Exception.class)
     public InfoVO orderSave(OrderSaveReqVO orderSaveReqVO) throws Exception {
         InfoVO infoVO = new InfoVO();
-        if(!headerCheck(orderSaveReqVO,infoVO)){
+        if (!headerCheck(orderSaveReqVO, infoVO)) {
             return infoVO;
         }
-        if (!lineCheck(orderSaveReqVO,infoVO)){
+        if (!lineCheck(orderSaveReqVO, infoVO)) {
             return infoVO;
         }
         /**
          * 处理头信息
          */
         OrderHeader orderHeader = new OrderHeader();
-        BeanUtils.copyProperties(orderSaveReqVO,orderHeader);
-        if (StringUtil.isEmpty(orderHeader.getOrderNumber())){
+        BeanUtils.copyProperties(orderSaveReqVO, orderHeader);
+        if (StringUtil.isEmpty(orderHeader.getOrderNumber())) {
             orderHeader.setOrderNumber(createOrderNumber("SO"));
         }
         orderHeaderService.saveOrUpdate(orderHeader);
@@ -338,7 +339,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 orderLineService.saveOrUpdate(orderLine);
             });
             infoVO.setInfo("操作成功");
-        }catch (Exception exception){
+        } catch (Exception exception) {
             throw new Exception("发生未知错误，操作失败");
         }
         return infoVO;
@@ -569,8 +570,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             orderHeader.setStatus("已取消");
             orderHeaderService.updateById(orderHeader);
             infoVO.setInfo("订单已取消");
-        }catch (Exception exception){
-            throw  new Exception("发生未知错误，订单未取消");
+        } catch (Exception exception) {
+            throw new Exception("发生未知错误，订单未取消");
         }
         return infoVO;
     }

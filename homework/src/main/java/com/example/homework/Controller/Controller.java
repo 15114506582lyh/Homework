@@ -30,7 +30,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/item/list")
-    public ItemListResVO list(@RequestBody ItemListReqVO itemListReqVO) {
+    public ItemListResVO list(@RequestBody ItemListReqVO itemListReqVO) throws Exception {
         return itemService.itemList(itemListReqVO);
     }
     /**
@@ -39,7 +39,7 @@ public class Controller {
      * @return
      */
     @GetMapping("/item/detail")
-    public Item detail(@Validated ItemIdReqVO itemIdReqVO) {
+    public ItemResVO detail(@Validated ItemIdReqVO itemIdReqVO) throws Exception {
         return itemService.itemDetail(itemIdReqVO);
     }
     /**
@@ -48,7 +48,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/item/create")
-    public InfoVO create(@Validated @RequestBody ItemCreateReqVO itemCreateReqVO) {
+    public InfoVO create(@Validated @RequestBody ItemCreateReqVO itemCreateReqVO) throws Exception {
         return itemService.itemCreate(itemCreateReqVO);
     }
     /**
@@ -57,7 +57,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/item/update")
-    public InfoVO update(@Validated @RequestBody Item item) {
+    public InfoVO update(@Validated @RequestBody Item item) throws Exception {
         return itemService.itemUpdate(item);
     }
     /**
@@ -66,7 +66,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/item/disable")
-    public InfoVO disable(@Validated @RequestBody ItemIdReqVO itemIdReqVO) {
+    public InfoVO disable(@Validated @RequestBody ItemIdReqVO itemIdReqVO) throws Exception {
         return itemService.itemDisable(itemIdReqVO);
     }
     /**
@@ -75,7 +75,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/customer/list")
-    public CustomerListResVO list(@RequestBody CustomerListReqVO customerListReqVO) {
+    public CustomerListResVO list(@RequestBody CustomerListReqVO customerListReqVO) throws Exception {
         return applicationService.customerList(customerListReqVO);
     }
     /**
@@ -84,7 +84,7 @@ public class Controller {
      * @return
      */
     @GetMapping("/customer/detail")
-    public CustomerDetailResVO detail(@Validated CustomerIdReqVO customerIdReqVO) {
+    public CustomerDetailResVO detail(@Validated CustomerIdReqVO customerIdReqVO) throws Exception {
         return applicationService.customerDetail(customerIdReqVO);
     }
     /**
@@ -102,7 +102,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/customer/disable")
-    public InfoVO disable(@Validated @RequestBody CustomerIdReqVO customerIdReqVO) {
+    public InfoVO disable(@Validated @RequestBody CustomerIdReqVO customerIdReqVO) throws Exception {
         return applicationService.disable(customerIdReqVO);
     }
 
@@ -112,7 +112,7 @@ public class Controller {
      * @return
      */
     @DeleteMapping("/customer/location/delete")
-    public InfoVO delete(@Validated @RequestBody LocationIdReqVO locationIdReqVO) {
+    public InfoVO delete(@Validated @RequestBody LocationIdReqVO locationIdReqVO) throws Exception {
         return customerLocationService.locationDelete(locationIdReqVO);
     }
     /**
@@ -121,7 +121,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/customer/location/selector")
-    public LocationSelectorResVO select(@Validated @RequestBody CustomerIdReqVO customerIdReqVO) {
+    public LocationSelectorResVO select(@Validated @RequestBody CustomerIdReqVO customerIdReqVO) throws Exception {
         return customerLocationService.select(customerIdReqVO);
     }
     /**
@@ -130,7 +130,7 @@ public class Controller {
      * @return
      */
     @PostMapping("/order/list")
-    public OrderListResVO list(@RequestBody OrderListReqVO orderListReqVO) {
+    public OrderListResVO list(@RequestBody OrderListReqVO orderListReqVO) throws Exception {
         return applicationService.orderList(orderListReqVO);
     }
 
@@ -140,7 +140,7 @@ public class Controller {
      * @return
      */
     @GetMapping("/order/detail")
-    public OrderDetailResVO detail(@Validated OrderIdReqVO orderIdReqVO) {
+    public OrderDetailResVO detail(@Validated OrderIdReqVO orderIdReqVO) throws Exception {
         return applicationService.orderDetail(orderIdReqVO);
     }
 
