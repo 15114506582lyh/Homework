@@ -1,5 +1,6 @@
 package com.example.homework.Controller;
 
+import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.example.homework.Domain.entity.Item;
 import com.example.homework.Domain.service.CustomerLocationService;
 import com.example.homework.Domain.service.OrderHeaderService;
@@ -24,6 +25,16 @@ public class Controller {
     private ShipmentService shipmentService;
     @Autowired
     private OrderHeaderService orderHeaderService;
+
+    @NacosValue(value = "${useLocalCache:false}", autoRefreshed = true)
+    private boolean useLocalCache;
+
+    @GetMapping(value = "/get")
+    @ResponseBody
+    public boolean get() {
+        return useLocalCache;
+    }
+
     /**
      * 商品信息列表查询，支持分页查询
      * @param itemListReqVO
